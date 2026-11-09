@@ -30,6 +30,7 @@ import {
 import { createElement, useCallback, useEffect, useState } from "react";
 import { AuthScreen } from "./components/auth/AuthScreen.jsx";
 import { ProfileSettings } from "./components/settings/ProfileSettings.jsx";
+import { SubjectsPage } from "./components/subjects/SubjectsPage.jsx";
 import { supabase } from "./lib/supabase.js";
 import { EmptyState } from "./components/ui/Feedback.jsx";
 
@@ -38,7 +39,7 @@ const BRAND_NAME = import.meta.env.VITE_BRAND_NAME?.trim() || "Acadly";
 const navigation = [
   { section: "WORKSPACE", items: [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
-    { id: "subjects", label: "Subjects", icon: BookOpen, count: "0" },
+    { id: "subjects", label: "Subjects", icon: BookOpen },
     { id: "planner", label: "Study planner", icon: CalendarDays },
     { id: "focus", label: "Focus room", icon: Timer },
     { id: "notes", label: "Notes & PDFs", icon: FileText },
@@ -315,6 +316,7 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [profileName, setProfileName] = useState("");
+  const [subjectProgress, setSubjectProgress] = useState({ subjects: [], chapters: [] });
   const acceptSession = useCallback((nextSession) => setSession(nextSession), []);
   const displayName = profileName || session?.user?.user_metadata?.display_name || session?.user?.email?.split("@")[0] || "Student";
   const email = session?.user?.email || "";
@@ -373,7 +375,7 @@ export default function App() {
       <div className="main-column">
         <Topbar active={active} onMenu={() => setMobileOpen(true)} displayName={displayName} email={email} />
         <main id="main-content" className="main-content">
-          {active === "overview" ? <Dashboard tasks={tasks} toggleTask={(id) => setTasks((current) => current.map((t) => t.id === id ? { ...t, done: !t.done } : t))} onAddTask={() => setDialogOpen(true)} onNavigate={setActive} /> : active === "settings" ? <ProfileSettings session={session} onDisplayNameChange={setProfileName} onSignOut={signOut} /> : <PlaceholderPage active={active} />}
+          {active === "overview" ? <Dashboard tasks={tasks} toggleTask={(id) => setTasks((current) => current.map((t) => t.id === id ? { ...t, done: !t.done } : t))} onAddTask={() => setDialogOpen(true)} onNavigate={setActive} /> : active === "subjects" ? <SubjectsPage userId={session.user.id} onProgressChange={(subjects, chapters) => setSubjectProgress({ subjects, chapters })} /> : active === "settings" ? <ProfileSettings session={session} onDisplayNameChange={setProfileName} onSignOut={signOut} /> : <PlaceholderPage active={active} />}
         </main>
         <footer className="app-footer"><span>© 2026 {BRAND_NAME}</span><span>Made for focused learning <span className="footer-heart">✦</span></span></footer>
       </div>
