@@ -414,7 +414,7 @@ export default function App() {
     <div className="app-frame">
       <Sidebar active={active} setActive={setActive} mobileOpen={mobileOpen} closeMobile={() => setMobileOpen(false)} onSignOut={signOut} displayName={displayName} email={email} />
       <div className="main-column">
-        <Topbar active={active} onMenu={() => setMobileOpen(true)} displayName={displayName} email={email} userId={session.user.id} onNavigate={setActive} reminderSyncToken={reminderSyncToken} />
+        <Topbar active={active} onMenu={() => setMobileOpen(true)} displayName={displayName} email={email} userId={session.user.id} onNavigate={setActive} syncToken={reminderSyncToken} />
         <main id="main-content" className="main-content">
           {active === "overview" ? <Dashboard subjectProgress={subjectProgress} tasks={tasks} toggleTask={(id) => setTasks((current) => current.map((t) => t.id === id ? { ...t, done: !t.done } : t))} onAddTask={() => setDialogOpen(true)} onNavigate={setActive} /> : active === "subjects" ? <SubjectsPage userId={session.user.id} onProgressChange={(subjects, chapters) => setSubjectProgress({ subjects, chapters })} /> : active === "planner" ? <PlannerPage userId={session.user.id} /> : active === "focus" ? <FocusPage userId={session.user.id} /> : active === "exams" ? <ExamsPage userId={session.user.id} /> : active === "notes" ? <NotesPage userId={session.user.id} /> : active === "revisions" ? <RevisionsPage userId={session.user.id} /> : active === "settings" ? <ProfileSettings session={session} onDisplayNameChange={setProfileName} onSignOut={signOut} /> : <PlaceholderPage active={active} />}
         </main>
