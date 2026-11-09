@@ -31,10 +31,11 @@ function TaskDialog({ initial, date, subjects, chapters, onClose, onSave }) {
   const [status, setStatus] = useState(initial?.status || "pending");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const subjectChapters = chapters.filter((chapter) => chapter.subject_id === subjectId);
+  const chapterIsValid = chapters.some((chapter) => chapter.id === chapterId && chapter.subject_id === subjectId);
   useEffect(() => {
-    if (chapterId && !subjectChapters.some((chapter) => chapter.id === chapterId)) setChapterId("");
-  }, [subjectId, chapterId, chapters]);
+    if (chapterId && !chapterIsValid) setChapterId("");
+  }, [chapterId, chapterIsValid]);
+  const subjectChapters = chapters.filter((chapter) => chapter.subject_id === subjectId);
 
   async function submit(event) {
     event.preventDefault();
