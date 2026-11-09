@@ -399,23 +399,6 @@ export function SubjectsPage({ userId, onProgressChange }) {
     }
   }
 
-  async function saveSubjectOrdering(fromId, toId) {
-    const activeSubjects = subjects.filter((subject) => !subject.is_archived).sort((a, b) => a.position - b.position);
-    const from = activeSubjects.findIndex((item) => item.id === fromId);
-    const to = activeSubjects.findIndex((item) => item.id === toId);
-    if (from < 0 || to < 0) return;
-    const reordered = [...activeSubjects];
-    const [moved] = reordered.splice(from, 1);
-    reordered.splice(to, 0, moved);
-    for (const [index, subject] of reordered.entries()) {
-      const { error } = await supabase.from("subjects").update({ position: index }).eq("id", subject.id);
-      if (error) throw error;
-    }
-    setSubjects((current) => current.map((subject) => {
-      const changed = reordered.find((item) => item.id === subject.id);
-      return changed ? { ...subject, position: changed.position } : subject;
-    }));
-  }
 
   return (
     <div className="subjects-page">
