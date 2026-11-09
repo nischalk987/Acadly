@@ -820,3 +820,46 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .revision-chapter-select-list small{color:#8c9bb2;font-size:8px}
 @media(max-width:850px){.revisions-page{padding:24px 20px 38px}.revision-grid{grid-template-columns:1fr}}
 @media(max-width:640px){.revisions-page{padding:20px 13px 30px}.revisions-header{align-items:flex-start;flex-direction:column}.revisions-header>div:last-child{width:100%}.revisions-header>div:last-child .button{flex:1;justify-content:center}.revisions-toolbar{align-items:stretch;flex-direction:column}.revisions-toolbar>select{width:100%}.revision-view-tabs{justify-content:space-between}.revision-view-tabs button{flex:1}.revisions-stats{gap:7px}.revisions-stats article{padding:10px}.revision-chapter-list>article{flex-wrap:wrap}.revision-chapter-list>article>small{margin-left:auto}.revision-grid{grid-template-columns:1fr}}
+
+
+/* In-app notification center */
+.topbar-actions{position:relative}
+.notification-center{position:relative;display:flex;align-items:center;z-index:40}
+.notification-bell{position:relative;display:grid;place-items:center;width:34px;height:34px;border:1px solid transparent;border-radius:8px;color:#9ba8bf;background:transparent;cursor:pointer}
+.notification-bell:hover,.notification-bell[aria-expanded="true"]{border-color:#344158;color:#e0d6ff;background:#192338}
+.notification-badge{position:absolute;top:-3px;right:-3px;display:grid;place-items:center;min-width:16px;height:16px;padding:0 4px;border:2px solid #111827;border-radius:20px;color:#fff;background:#9b70ef;font-size:8px;font-weight:800}
+.notification-dismiss-layer{position:fixed;inset:0;z-index:39;border:0;background:transparent;cursor:default}
+.notification-popover{position:absolute;top:45px;right:-44px;z-index:41;display:flex;flex-direction:column;width:min(390px,calc(100vw - 24px));max-height:min(610px,calc(100vh - 90px));overflow:hidden;border:1px solid #34415a;border-radius:13px;background:#121a29;box-shadow:0 18px 55px #0009}
+.notification-popover>header{display:flex;align-items:center;justify-content:space-between;padding:15px 16px 12px;border-bottom:1px solid #293449}
+.notification-popover>header h2{margin:4px 0 0;color:#edf1fa;font:750 15px Manrope,sans-serif}
+.notification-popover>header h2 span{margin-left:5px;padding:2px 6px;border-radius:12px;color:#cfbcff;background:#342a50;font:700 9px "DM Sans",sans-serif}
+.notification-toolbar{display:flex;align-items:center;justify-content:space-between;padding:9px 15px;color:#8695ad;font-size:9px}
+.notification-toolbar button,.notification-popover>footer button{display:flex;align-items:center;gap:5px;border:0;color:#b8a5ef;background:transparent;font-size:9px;cursor:pointer}
+.notification-toolbar button:disabled{opacity:.45;cursor:not-allowed}
+.notification-list{overflow-y:auto}
+.notification-item{position:relative;display:flex;align-items:flex-start;gap:8px;padding:11px 12px;border-top:1px solid #222f43}
+.notification-item:hover{background:#182338}
+.notification-unread{background:#171f32}
+.notification-content{display:flex;flex:1;align-items:flex-start;gap:10px;min-width:0;border:0;color:inherit;background:transparent;text-align:left;cursor:pointer}
+.notification-type{display:grid;place-items:center;flex:none;width:52px;height:26px;margin-top:1px;border-radius:6px;color:#b9a5fb;background:#30284c;font-size:7px;font-weight:800;letter-spacing:.04em}
+.notification-type-exam{color:#f4c98f;background:#493924}
+.notification-type-task{color:#9ac7ff;background:#203a57}
+.notification-type-revision{color:#a3e5c4;background:#204538}
+.notification-type-system{color:#bdc8da;background:#2c3748}
+.notification-copy{display:flex;flex:1;flex-direction:column;gap:4px;min-width:0}
+.notification-copy strong{color:#e8edf6;font-size:10px}
+.notification-copy>span{display:-webkit-box;overflow:hidden;color:#9ba9bf;font-size:9px;line-height:1.5;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.notification-copy small{display:flex;align-items:center;gap:4px;color:#75839a;font-size:8px}
+.notification-unread-dot{flex:none;width:6px;height:6px;margin-top:5px;border-radius:50%;background:#a78bfa}
+.notification-actions{display:flex;gap:2px}
+.notification-actions button{display:grid;place-items:center;width:24px;height:24px;border:0;border-radius:5px;color:#74839a;background:transparent;cursor:pointer}
+.notification-actions button:hover{color:#d5c7ff;background:#28324a}
+.notification-popover>footer{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-top:1px solid #293449;color:#8593a9;font-size:8px}
+.notification-popover>footer span{display:flex;align-items:center;gap:6px}
+.settings-toggle-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0}
+.settings-toggle-row>span{display:flex;flex-direction:column;gap:4px}
+.settings-toggle-row strong{color:#dfe6f1;font-size:10px}
+.settings-toggle-row small{color:#8796ad;font-size:8px;line-height:1.5}
+.settings-toggle-row input{width:17px;height:17px;accent-color:#9673ed}
+.settings-toggle-row input:disabled{opacity:.45}
+@media(max-width:620px){.notification-popover{position:fixed;top:66px;right:12px;max-height:calc(100vh - 82px)}.notification-bell{width:32px;height:32px}}
