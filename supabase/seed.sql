@@ -17,15 +17,29 @@ $$;
 insert into auth.users (
   id, aud, role, email, encrypted_password, email_confirmed_at,
   raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
-  confirmation_token, recovery_token, email_change_token_new, email_change
+  confirmation_token, recovery_token, email_change_token_new, email_change,
+  is_sso_user, is_anonymous
 )
 values (
   'd0e3c8f0-1234-5678-9abc-def012345678',
   'authenticated', 'authenticated', 'demo.student@acadly.local',
   '', now(), '{"provider":"email","providers":["email"]}',
-  '{"display_name":"Demo Student"}', now(), now(), '', '', '', ''
+  '{"display_name":"Demo Student"}', now(), now(), '', '', '', '',
+  false, false
 )
 on conflict (id) do nothing;
+
+insert into auth.identities (
+  provider_id, user_id, identity_data, provider, last_sign_in_at,
+  created_at, updated_at
+)
+values (
+  'd0e3c8f0-1234-5678-9abc-def012345678',
+  'd0e3c8f0-1234-5678-9abc-def012345678',
+  '{"sub":"d0e3c8f0-1234-5678-9abc-def012345678","email":"demo.student@acadly.local"}',
+  'email', now(), now(), now()
+)
+on conflict (provider_id, provider) do nothing;
 
 insert into public.subjects (id, user_id, name, description, color, position)
 values
