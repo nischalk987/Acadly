@@ -26,7 +26,9 @@ import {
   TrendingUp,
   X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { AuthScreen } from "./components/auth/AuthScreen.jsx";
+import { supabase } from "./lib/supabase.js";
 import { EmptyState } from "./components/ui/Feedback.jsx";
 
 const BRAND_NAME = import.meta.env.VITE_BRAND_NAME?.trim() || "Acadly";
@@ -82,7 +84,7 @@ function IconButton({ label, children, className = "", onClick }) {
   return <button className={cx("icon-button", className)} type="button" aria-label={label} title={label} onClick={onClick}>{children}</button>;
 }
 
-function Sidebar({ active, setActive, mobileOpen, closeMobile }) {
+function Sidebar({ active, setActive, mobileOpen, closeMobile, onSignOut }) {
   return (
     <>
       {mobileOpen && <button className="sidebar-scrim" aria-label="Close navigation" onClick={closeMobile} />}
@@ -115,9 +117,9 @@ function Sidebar({ active, setActive, mobileOpen, closeMobile }) {
         </div>
         <button className="nav-link settings-link" type="button" onClick={() => { setActive("settings"); closeMobile(); }}><Settings2 size={17} /><span>Settings</span></button>
         <div className="profile-row">
-          <div className="profile-avatar">N</div>
-          <div className="profile-info"><strong>Student</strong><span>Free account</span></div>
-          <MoreHorizontal size={19} className="profile-more" />
+          <div className="profile-avatar">S</div>
+          <div className="profile-info"><strong>My account</strong><span>Signed in</span></div>
+          <button className="profile-signout" type="button" onClick={onSignOut}>Sign out</button>
         </div>
       </aside>
     </>
@@ -277,11 +279,29 @@ function QuickAddDialog({ onClose, onSave }) {
 }
 
 export default function App() {
+  const [session, setSession] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const acceptSession = useCallback((nextSession) => setSession(nextSession), []);
   const [active, setActive] = useState("overview");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [tasks, setTasks] = useState(initialTasks);
   const [toast, setToast] = useState("");
+  useEffect(() => {
+    let alive = true;
+    if (!supabase) { setAuthLoading(false); return undefined; }
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (!alive) return;
+      if (error) setToast("Session could not be restored. Please sign in again.");
+      setSession(data?.session ?? null);
+      setAuthLoading(false);
+    });
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      setSession(nextSession);
+      setAuthLoading(false);
+    });
+    return () => { alive = false; authListener.subscription.unsubscribe(); };
+  }, []);
   useEffect(() => {
     const listener = (event) => setActive(event.detail);
     window.addEventListener("acadly:navigate", listener);
@@ -292,9 +312,17 @@ export default function App() {
     setToast("Task added to your preview workspace");
     window.setTimeout(() => setToast(""), 2800);
   }
+  async function signOut() {
+    const { error } = await supabase.auth.signOut();
+    if (error) { setToast("Sign out failed. Please try again."); return; }
+    setSession(null);
+    setActive("overview");
+  }
+  if (authLoading) return <div className="auth-page"><div className="loading-state"><span className="loading-spinner" /> Restoring your secure session...</div></div>;
+  if (!session) return <AuthScreen onAuthenticated={acceptSession} />;
   return (
     <div className="app-frame">
-      <Sidebar active={active} setActive={setActive} mobileOpen={mobileOpen} closeMobile={() => setMobileOpen(false)} />
+      <Sidebar active={active} setActive={setActive} mobileOpen={mobileOpen} closeMobile={() => setMobileOpen(false)} onSignOut={signOut} />
       <div className="main-column">
         <Topbar active={active} onMenu={() => setMobileOpen(true)} />
         <main id="main-content" className="main-content">

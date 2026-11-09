@@ -47,6 +47,8 @@ Acadly/
 │   └── README.md
 ├── frontend/
 │   ├── src/{App.jsx,main.jsx,styles.css}
+│   ├── src/components/auth/AuthScreen.jsx
+│   ├── src/lib/supabase.js
 │   ├── .env.example
 │   ├── eslint.config.js
 │   ├── index.html
@@ -188,9 +190,21 @@ See [supabase/README.md](supabase/README.md) for project linking, deletion behav
 - Run frontend lint/build and backend tests/lint before committing.
 - Do not commit generated files, databases, virtual environments, `node_modules`, build output, or user uploads.
 
+## Authentication setup
+
+The frontend uses Supabase Auth for student signup, email verification, password login, persistent sessions, password recovery, password updates, and logout. Supabase JS handles browser session persistence and token refresh. Authenticated database access is scoped by the user's access token and the existing row-level security rules.
+
+1. In `frontend/`, copy `.env.example` to `.env`.
+2. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` to the project API URL and publishable (or legacy anon) key. These are public browser credentials; never use a service-role/secret key here.
+3. In Supabase Dashboard → Authentication → URL Configuration, set the site URL and add exact local, preview, and production callback URLs. Local callback: `http://127.0.0.1:5173/auth/callback`.
+4. Enable email confirmation and minimum password length 8. Configure custom SMTP and hosted CAPTCHA/rate limits before broad signup. Review `supabase/README.md` for operational limits.
+5. Restart Vite after changing environment variables.
+
+Passwords are sent only to Supabase Auth over HTTPS. The frontend does not contain a privileged key or service-role auth endpoint.
+
 ## Development status
 
-The repository includes the app shell, starter API, Supabase database baseline and migration workflow. Authentication screens, frontend session integration, feature-specific CRUD screens, and live PDF upload UX remain future work.
+The repository includes the app shell, starter API, Supabase database baseline and migration workflow, and Supabase Auth UI/session integration. Feature-specific CRUD screens and live PDF upload UX remain future work.
 
 ## Contributing
 

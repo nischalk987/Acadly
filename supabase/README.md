@@ -57,3 +57,17 @@ Review every generated SQL migration before pushing. Do not edit the hosted data
 - Uploaded files live in the private `student-notes` Storage bucket. The object path is `<auth-user-uuid>/<file-uuid>.<extension>`. Storage RLS limits access to that user's folder.
 - Auth-user deletion does not automatically guarantee deletion of every Storage object. An authenticated account-deletion workflow must remove that user's Storage objects before or as part of account removal, then delete the Auth user through a trusted server-side operation.
 - Backups and provider retention follow the Supabase plan and project settings; deletion from application tables is not a guarantee that provider backups are instantly erased.
+
+
+## Supabase Auth configuration
+
+The frontend uses Supabase Auth with the browser-safe publishable key (or legacy anon key). Configure these settings in **Supabase Dashboard → Authentication → URL Configuration** before enabling public signups:
+
+- Site URL: your production frontend origin. For local development, use `http://127.0.0.1:5173`.
+- Redirect allow list: exact local, preview, and production callback URLs. Do not use wildcard URLs in production.
+- Enable email confirmations and require at least 8 characters for passwords. The local `config.toml` configures confirmation and password length; verify hosted Auth settings separately because local config does not update the hosted project.
+- Configure custom SMTP and verify the sender/domain before broad public signup. Supabase's default email service is rate-limited and intended for development/testing, not production-scale delivery.
+- Configure provider-specific rate limits and CAPTCHA protection in hosted Auth abuse settings before opening registration publicly.
+- Password verification and recovery links return to `/auth/callback`, which must be allow-listed.
+
+Preview deployments must each use an explicitly allow-listed origin. Never set a wildcard redirect URL for production.
