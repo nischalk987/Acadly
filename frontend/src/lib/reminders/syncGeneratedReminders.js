@@ -65,7 +65,7 @@ function reminderPayload(userId, sourceType, sourceId, eventKey, title, body, re
 }
 
 export async function syncGeneratedReminders(userId) {
-  if (!supabase || !userId) return { created: 0, skipped: "not-ready" };
+  if (!supabase || !userId) return { created: 0, newReminders: [], skipped: "not-ready" };
   const [prefRes, profileRes, taskRes, examRes, revisionRes] = await Promise.all([
     supabase.from("user_preferences").select("reminders_enabled,quiet_hours_start,quiet_hours_end").eq("user_id", userId).maybeSingle(),
     supabase.from("profiles").select("timezone").eq("id", userId).maybeSingle(),
@@ -75,7 +75,7 @@ export async function syncGeneratedReminders(userId) {
   ]);
   for (const result of [prefRes, profileRes, taskRes, examRes, revisionRes]) if (result.error) throw result.error;
   const prefs = prefRes.data || {};
-  if (prefs.reminders_enabled === false) return { created: 0, skipped: "disabled" };
+  if (prefs.reminders_enabled === false) return { created: 0, newReminders: [], skipped: "disabled" };
   let timeZone = profileRes.data?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
   try { new Intl.DateTimeFormat("en", { timeZone }).format(new Date()); }
   catch { timeZone = "UTC"; }
@@ -105,8 +105,8 @@ export async function syncGeneratedReminders(userId) {
     if (dueDateKey < todayKey) continue;
     pending.push(reminderPayload(userId, "revision", revision.id, "revision:" + revision.id + ":due", "Chapter revision due", (chapter?.title || "Your chapter") + " · Revision " + revision.revision_number + " is due " + timestamp.toLocaleString([], { timeZone }) + ".", scheduleRespectingQuietHours(Math.max(timestamp, now), prefs, timeZone), "revision"));
   }
-  if (!pending.length) return { created: 0, skipped: "none-due" };
+  if (!pending.length) return { created: 0, newReminders: [], skipped: "none-due" };
   const { data, error } = await supabase.from("reminders").upsert(pending, { onConflict: "user_id,event_key", ignoreDuplicates: true }).select("id");
   if (error) throw error;
-  return { created: data?.length || 0, considered: pending.length };
+  return { created: data?.length || 0, newReminders: data || [], considered: pending.length };
 }
