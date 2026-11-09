@@ -26,26 +26,148 @@ Free infrastructure is not unlimited. Database, file storage, bandwidth, email d
 
 Read [docs/PRODUCT_REQUIREMENTS.md](docs/PRODUCT_REQUIREMENTS.md) for the product vision, MVP scope, module acceptance criteria, security/privacy requirements, supported browsers, free-access policy, and release checklist.
 
-## Planned technology
+## Technology
 
-- Frontend: React + Vite
+- Frontend: React 18 + Vite 6
 - Backend: Python + FastAPI
-- Authentication, database, and private file storage: Supabase
-- Source control and collaboration: GitHub
+- Authentication, database, and private file storage: planned Supabase integration
+- Source control: Git and GitHub
 
-Architecture and provider selections may be refined as implementation begins. Re-check current provider terms and free-tier limits before deployment.
+## Repository structure
+
+```text
+Acadly/
+├── docs/
+│   └── PRODUCT_REQUIREMENTS.md
+├── frontend/
+│   ├── src/
+│   │   ├── App.jsx
+│   │   ├── main.jsx
+│   │   └── styles.css
+│   ├── .env.example
+│   ├── eslint.config.js
+│   ├── index.html
+│   ├── package.json
+│   └── vite.config.js
+├── backend/
+│   ├── tests/
+│   │   └── test_health.py
+│   ├── .env.example
+│   ├── main.py
+│   ├── pyproject.toml
+│   └── requirements.txt
+├── .editorconfig
+├── .gitignore
+├── LICENSE
+└── README.md
+```
+
+## Prerequisites
+
+Install Git, Node.js 20 LTS or newer compatible LTS with npm, Python 3.11 or newer, and PowerShell.
+
+Check versions:
+
+```powershell
+git --version
+node --version
+npm --version
+py --version
+```
+
+## Local setup — Windows PowerShell
+
+### 1. Clone the repository
+
+```powershell
+git clone https://github.com/nischalk987/Acadly.git
+cd Acadly
+```
+
+### 2. Start the frontend
+
+Open a PowerShell terminal:
+
+```powershell
+cd frontend
+Copy-Item .env.example .env
+npm install
+npm run dev
+```
+
+Open the URL printed by Vite (by default http://127.0.0.1:5173).
+
+### 3. Start the backend
+
+Open a second PowerShell terminal from the repository root:
+
+```powershell
+cd backend
+py -3 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+Copy-Item .env.example .env
+uvicorn main:app --reload --host 127.0.0.1 --port 8000
+```
+
+If PowerShell blocks virtual-environment activation, run this in that terminal and retry:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\.venv\Scripts\Activate.ps1
+```
+
+API: http://127.0.0.1:8000  
+Interactive API docs: http://127.0.0.1:8000/docs  
+Health check: http://127.0.0.1:8000/api/health
+
+### 4. Run backend tests and lint
+
+From `backend/` with the virtual environment active:
+
+```powershell
+pytest
+ruff check .
+```
+
+### 5. Build and lint the frontend
+
+From `frontend/`:
+
+```powershell
+npm run lint
+npm run build
+```
+
+## Environment variables and secrets
+
+- Copy each `.env.example` to `.env` in its app directory.
+- Never commit real `.env` files, credentials, Supabase service-role keys, JWT signing secrets, private keys, student records, or uploaded PDFs.
+- `VITE_*` variables are bundled into browser code and must never contain secrets.
+- Supabase variables are placeholders; the starter runs without a Supabase project.
+
+## Development conventions
+
+- Keep frontend application code in `frontend/src/`.
+- Keep backend routes, schemas, and service logic in separate modules as they are introduced.
+- Use descriptive filenames and lowercase `snake_case` for Python modules.
+- Use PascalCase for React component names and `.jsx` component files.
+- Keep API routes under the `/api` prefix.
+- Add/update tests when changing backend behavior.
+- Run frontend lint/build and backend tests/lint before committing.
+- Do not commit generated files, databases, virtual environments, `node_modules`, build output, or user uploads.
 
 ## Development status
 
-Acadly is at the product-definition stage. Application modules have not yet been implemented.
+The repository foundation and starter API/UI are in place. Feature modules, Supabase authentication, database policies, and PDF storage are not implemented yet.
 
 ## Contributing
 
 1. Read the product requirements.
 2. Pick an open GitHub issue and discuss significant design changes before implementation.
 3. Keep changes scoped and include tests where appropriate.
-4. Never commit credentials, environment files, student data, uploaded PDFs, database files, or build artifacts.
-5. Keep privacy and per-user authorization requirements intact.
+4. Preserve private-by-default student data and per-user authorization requirements.
 
 ## License
 
