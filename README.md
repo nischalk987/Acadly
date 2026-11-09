@@ -49,6 +49,8 @@ Acadly/
 │   ├── src/{App.jsx,main.jsx,styles.css}
 │   ├── src/components/auth/AuthScreen.jsx
 │   ├── src/lib/supabase.js
+│   ├── src/components/auth/AuthScreen.jsx
+│   ├── src/lib/supabase.js
 │   ├── .env.example
 │   ├── eslint.config.js
 │   ├── index.html

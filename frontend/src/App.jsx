@@ -84,15 +84,15 @@ function IconButton({ label, children, className = "", onClick }) {
   return <button className={cx("icon-button", className)} type="button" aria-label={label} title={label} onClick={onClick}>{children}</button>;
 }
 
-function Sidebar({ active, setActive, mobileOpen, closeMobile, onSignOut }) {
+function Sidebar({ active, setActive, mobileOpen, closeMobile, onSignOut, displayName, email }) {
   return (
     <>
       {mobileOpen && <button className="sidebar-scrim" aria-label="Close navigation" onClick={closeMobile} />}
       <aside className={cx("sidebar", mobileOpen && "sidebar-open")}>
         <div className="sidebar-brand"><Brand /><IconButton label="Close menu" className="mobile-close" onClick={closeMobile}><X size={18} /></IconButton></div>
         <button className="workspace-switcher" type="button">
-          <span className="workspace-avatar">N</span>
-          <span className="workspace-copy"><strong>My workspace</strong><small>Personal account</small></span>
+          <span className="workspace-avatar">{(displayName || email || "S").charAt(0).toUpperCase()}</span>
+          <span className="workspace-copy"><strong>My workspace</strong><small>{email || "Personal account"}</small></span>
           <ChevronDown size={15} />
         </button>
         <nav className="primary-nav" aria-label="Main navigation">
@@ -117,8 +117,8 @@ function Sidebar({ active, setActive, mobileOpen, closeMobile, onSignOut }) {
         </div>
         <button className="nav-link settings-link" type="button" onClick={() => { setActive("settings"); closeMobile(); }}><Settings2 size={17} /><span>Settings</span></button>
         <div className="profile-row">
-          <div className="profile-avatar">S</div>
-          <div className="profile-info"><strong>My account</strong><span>Signed in</span></div>
+          <div className="profile-avatar">{(displayName || email || "S").charAt(0).toUpperCase()}</div>
+          <div className="profile-info"><strong>{displayName || "Student"}</strong><span>{email || "Signed in"}</span></div>
           <button className="profile-signout" type="button" onClick={onSignOut}>Sign out</button>
         </div>
       </aside>
@@ -138,7 +138,7 @@ function Topbar({ onMenu, active }) {
         <div className="search-box"><Search size={16} /><input aria-label="Search Acadly" placeholder="Search anything..." /><kbd><Command size={11} /> K</kbd></div>
         <span className="topbar-divider" />
         <IconButton label="Help and support"><CircleHelp size={18} /></IconButton>
-        <button className="topbar-profile" type="button" aria-label="Student profile"><span className="profile-avatar small">N</span><ChevronDown size={14} /></button>
+        <span className="topbar-profile" title={email}><span className="profile-avatar small">{(displayName || email || "S").charAt(0).toUpperCase()}</span></span>
       </div>
     </header>
   );
@@ -229,6 +229,37 @@ function Dashboard({ tasks, toggleTask, onAddTask, onNavigate }) {
   );
 }
 
+function AuthCallback({ onAuthenticated }) {
+  const [message, setMessage] = useState("Verifying your secure link...");
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    async function exchange() {
+      if (!supabase) { setFailed(true); setMessage("Authentication is not configured. Please contact the site administrator."); return; }
+      const url = new URL(window.location.href);
+      const code = url.searchParams.get("code");
+      const errorDescription = url.searchParams.get("error_description");
+      if (errorDescription) { setFailed(true); setMessage(errorDescription); return; }
+      try {
+        if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) throw error;
+        }
+        const { data, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        if (!data.session) throw new Error("The link may have expired or already been used. Request a new email link.");
+        if (!alive) return;
+        const next = url.searchParams.get("next");
+        window.history.replaceState({}, "", next === "/reset-password" ? "/reset-password" : "/");
+        onAuthenticated(data.session);
+      } catch (err) { if (alive) { setFailed(true); setMessage(err.message || "Could not verify this link."); } }
+    }
+    exchange();
+    return () => { alive = false; };
+  }, [onAuthenticated]);
+  return <main className="auth-page"><section className="auth-card auth-callback-card"><span className="auth-heading-icon"><ShieldCheck size={20} /></span><h1>{failed ? "Link could not be verified" : "Securing your account"}</h1><p role={failed ? "alert" : "status"}>{message}</p>{failed && <button className="auth-submit" onClick={() => { window.history.replaceState({}, "", "/"); window.location.reload(); }}>Back to sign in</button>}</section></main>;
+}
+
 function PlaceholderPage({ active }) {
   const items = {
     subjects: ["Your subjects", "Add subjects and break them into manageable chapters."],
@@ -282,6 +313,8 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const acceptSession = useCallback((nextSession) => setSession(nextSession), []);
+  const displayName = session?.user?.user_metadata?.display_name || session?.user?.email?.split("@")[0] || "Student";
+  const email = session?.user?.email || "";
   const [active, setActive] = useState("overview");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -319,10 +352,11 @@ export default function App() {
     setActive("overview");
   }
   if (authLoading) return <div className="auth-page"><div className="loading-state"><span className="loading-spinner" /> Restoring your secure session...</div></div>;
+  if (window.location.pathname === "/auth/callback") return <AuthCallback onAuthenticated={acceptSession} />;
   if (!session) return <AuthScreen onAuthenticated={acceptSession} />;
   return (
     <div className="app-frame">
-      <Sidebar active={active} setActive={setActive} mobileOpen={mobileOpen} closeMobile={() => setMobileOpen(false)} onSignOut={signOut} />
+      <Sidebar active={active} setActive={setActive} mobileOpen={mobileOpen} closeMobile={() => setMobileOpen(false)} onSignOut={signOut} displayName={displayName} email={email} />
       <div className="main-column">
         <Topbar active={active} onMenu={() => setMobileOpen(true)} />
         <main id="main-content" className="main-content">

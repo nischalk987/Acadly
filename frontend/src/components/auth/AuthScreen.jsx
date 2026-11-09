@@ -28,13 +28,9 @@ export function AuthScreen({ onAuthenticated }) {
   useEffect(() => {
     if (!supabase) return undefined;
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
-      if ((event === "SIGNED_IN" || event === "PASSWORD_RECOVERY") && session) {
-        if (event === "PASSWORD_RECOVERY") {
-          setMode("update-password");
-          setNotice("Choose a new password for your account.");
-        } else {
-          onAuthenticated(session);
-        }
+      if (event === "PASSWORD_RECOVERY" && session) {
+        setMode("update-password");
+        setNotice("Choose a new password for your account.");
       }
     });
     return () => data.subscription.unsubscribe();
@@ -214,10 +210,10 @@ export function AuthScreen({ onAuthenticated }) {
         )}
         <div className="auth-switch">
           {isSignup
-            ? <>Already have an account? <button onClick={() => switchMode("login")}>Sign in</button></>
+            ? <>Already have an account? <button type="button" onClick={() => switchMode("login")}>Sign in</button></>
             : isForgot || isUpdate
-              ? <button onClick={() => switchMode("login")}><ArrowLeft size={14} /> Back to sign in</button>
-              : <>New to {BRAND_NAME}? <button onClick={() => switchMode("signup")}>Create a free account</button></>}
+              ? <button type="button" onClick={() => switchMode("login")}><ArrowLeft size={14} /> Back to sign in</button>
+              : <>New to {BRAND_NAME}? <button type="button" onClick={() => switchMode("signup")}>Create a free account</button></>}
         </div>
         <p className="auth-privacy"><LockKeyhole size={12} /> Your study data is private and protected by account-level access rules.</p>
       </section>

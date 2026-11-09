@@ -363,3 +363,5 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .auth-privacy{display:flex;align-items:center;justify-content:center;gap:6px;margin:23px 0 0;padding-top:17px;border-top:1px solid #263147;color:#758198;font-size:9px;text-align:center}.auth-footer{position:absolute;bottom:23px;color:#68758a;font-size:9px}.auth-footer span{margin:0 7px;color:#a78bfa}
 .auth-spinner{animation:acadly-spin .8s linear infinite}.profile-signout{padding:5px 7px;border:1px solid #354158;border-radius:7px;color:#bac4d7;background:#182132;font-size:9px;cursor:pointer}.profile-signout:hover{border-color:#8b5cf6;color:#fff}
 @media(max-width:480px){.auth-page{padding:20px 13px 60px}.auth-card{padding:27px 21px 23px}.auth-heading h1{font-size:23px}}
+
+.auth-callback-card{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}.auth-callback-card h1{margin:0;color:#f2f1fa;font:750 22px Manrope,sans-serif}.auth-callback-card p{margin:0;color:#aab4c7;font-size:11px;line-height:1.6}.auth-callback-card .auth-submit{width:100%;margin-top:8px}

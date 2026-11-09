@@ -71,3 +71,17 @@ The frontend uses Supabase Auth with the browser-safe publishable key (or legacy
 - Password verification and recovery links return to `/auth/callback`, which must be allow-listed.
 
 Preview deployments must each use an explicitly allow-listed origin. Never set a wildcard redirect URL for production.
+
+
+## Supabase Auth configuration
+
+The frontend uses Supabase Auth with the browser-safe publishable key (or legacy anon key). Set these in **Supabase Dashboard → Authentication → URL Configuration** before enabling public signups:
+
+- Site URL: your production frontend origin. For local development, use `http://127.0.0.1:5173`.
+- Redirect allow list: exact local, preview, and production callback URLs. Do not use wildcard production URLs.
+- Enable email confirmations and require at least 8 characters for passwords. Verify hosted Auth settings separately; local `config.toml` does not update the hosted project.
+- Configure custom SMTP and verify the sender/domain before broad public signup. Supabase's default email service is rate-limited and intended for development/testing, not production-scale delivery.
+- Configure Auth rate limits and CAPTCHA protection in hosted Auth abuse settings before public launch.
+- Email verification and password recovery redirects use `/auth/callback`, which must be allowed.
+
+Each preview deployment needs an explicitly allow-listed callback origin.
