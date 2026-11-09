@@ -16,12 +16,13 @@ const labelDate = (value) => {
 };
 const typeIcon = (type) => type === "exam" ? "EXAM" : type === "revision" ? "REVISION" : type === "task" ? "TASK" : "UPDATE";
 
-export function NotificationCenter({ userId, onNavigate, syncToken = 0 }) {
+export function NotificationCenter({ userId, onNavigate, syncToken = 0, notificationToken = 0 }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [permission, setPermission] = useState(typeof Notification === "undefined" ? "unsupported" : Notification.permission);
+  const announcedRef = useState(() => new Set())[0];
   const [preferences, setPreferences] = useState({ reminders_enabled: true, quiet_hours_start: "", quiet_hours_end: "" });
   const [open, setOpen] = useState(false);
   const unread = useMemo(() => items.filter((item) => !item.is_read && !item.dismissed_at), [items]);
@@ -42,6 +43,20 @@ export function NotificationCenter({ userId, onNavigate, syncToken = 0 }) {
   }, [userId]);
 
   useEffect(() => { load(); }, [load, syncToken]);
+  useEffect(() => {
+    if (notificationToken < 1 || typeof Notification === "undefined" || Notification.permission !== "granted" || document.visibilityState !== "visible") return;
+    const announce = async () => {
+      const { data, error: queryError } = await supabase.from("reminders").select("*").eq("is_read", false).is("dismissed_at", null).lte("remind_at", new Date().toISOString()).order("remind_at", { ascending: true }).limit(10);
+      if (queryError) return;
+      (data || []).forEach((item) => {
+        const key = item.event_key || item.id;
+        if (announcedRef.has(key)) return;
+        announcedRef.add(key);
+        new Notification(item.title, { body: item.body || "You have an Acadly reminder.", tag: key });
+      });
+    };
+    announce();
+  }, [notificationToken, userId]);
 
   async function update(id, changes) {
     setBusy(true);
