@@ -16,7 +16,7 @@ const labelDate = (value) => {
 };
 const typeIcon = (type) => type === "exam" ? "EXAM" : type === "revision" ? "REVISION" : type === "task" ? "TASK" : "UPDATE";
 
-export function NotificationCenter({ userId, onNavigate }) {
+export function NotificationCenter({ userId, onNavigate, syncToken = 0 }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -41,7 +41,7 @@ export function NotificationCenter({ userId, onNavigate }) {
     setLoading(false);
   }, [userId]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { load(); }, [load, syncToken]);
 
   async function update(id, changes) {
     setBusy(true);
