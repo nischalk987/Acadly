@@ -33,6 +33,7 @@ import { ProfileSettings } from "./components/settings/ProfileSettings.jsx";
 import { SubjectsPage } from "./components/subjects/SubjectsPage.jsx";
 import { PlannerPage } from "./components/planner/PlannerPage.jsx";
 import { FocusPage } from "./components/focus/FocusPage.jsx";
+import { ExamsPage } from "./components/exams/ExamsPage.jsx";
 import { supabase } from "./lib/supabase.js";
 import { EmptyState } from "./components/ui/Feedback.jsx";
 
@@ -383,7 +384,7 @@ export default function App() {
       <div className="main-column">
         <Topbar active={active} onMenu={() => setMobileOpen(true)} displayName={displayName} email={email} />
         <main id="main-content" className="main-content">
-          {active === "overview" ? <Dashboard subjectProgress={subjectProgress} tasks={tasks} toggleTask={(id) => setTasks((current) => current.map((t) => t.id === id ? { ...t, done: !t.done } : t))} onAddTask={() => setDialogOpen(true)} onNavigate={setActive} /> : active === "subjects" ? <SubjectsPage userId={session.user.id} onProgressChange={(subjects, chapters) => setSubjectProgress({ subjects, chapters })} /> : active === "planner" ? <PlannerPage userId={session.user.id} /> : active === "focus" ? <FocusPage userId={session.user.id} /> : active === "settings" ? <ProfileSettings session={session} onDisplayNameChange={setProfileName} onSignOut={signOut} /> : <PlaceholderPage active={active} />}
+          {active === "overview" ? <Dashboard subjectProgress={subjectProgress} tasks={tasks} toggleTask={(id) => setTasks((current) => current.map((t) => t.id === id ? { ...t, done: !t.done } : t))} onAddTask={() => setDialogOpen(true)} onNavigate={setActive} /> : active === "subjects" ? <SubjectsPage userId={session.user.id} onProgressChange={(subjects, chapters) => setSubjectProgress({ subjects, chapters })} /> : active === "planner" ? <PlannerPage userId={session.user.id} /> : active === "focus" ? <FocusPage userId={session.user.id} /> : active === "exams" ? <ExamsPage userId={session.user.id} /> : active === "settings" ? <ProfileSettings session={session} onDisplayNameChange={setProfileName} onSignOut={signOut} /> : <PlaceholderPage active={active} />}
         </main>
         <footer className="app-footer"><span>© 2026 {BRAND_NAME}</span><span>Made for focused learning <span className="footer-heart">✦</span></span></footer>
       </div>
