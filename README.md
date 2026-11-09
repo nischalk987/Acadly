@@ -223,3 +223,8 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE).
 ## Backend security
 
 Protected API routes validate Supabase access tokens with Supabase Auth. Configure `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` in the backend environment, and set `CORS_ORIGINS` to exact trusted frontend origins. Do not configure service-role/secret keys in the frontend. See [docs/SECURITY_MODEL.md](docs/SECURITY_MODEL.md) for the ownership model and live two-student RLS integration test setup.
+
+
+## Student profile and account settings
+
+Students can edit their display name, time zone, and preferred week start in Settings. Profile and preference records are created at signup and remain protected by RLS. Avatars are stored in a private, per-student Storage bucket. The Settings page also supports a JSON export of the student's profile and application records. See [the account data lifecycle policy](docs/ACCOUNT_DATA_LIFECYCLE.md) for export scope and the account deletion flow design.
