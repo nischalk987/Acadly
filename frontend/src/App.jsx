@@ -147,7 +147,7 @@ function Topbar({ onMenu, active, displayName, email, userId, onNavigate, syncTo
       <div className="topbar-actions">
         <div className="search-box"><Search size={16} /><input aria-label="Search Acadly" placeholder="Search anything..." /><kbd><Command size={11} /> K</kbd></div>
         <span className="topbar-divider" />
-        <NotificationCenter userId={userId} onNavigate={onNavigate} syncToken={syncToken} notificationToken={notificationToken} />
+        <NotificationCenter userId={userId} onNavigate={onNavigate} syncToken={syncToken} notificationToken={notificationToken} newReminderIds={newReminderIds} />
         <IconButton label="Help and support"><CircleHelp size={18} /></IconButton>
         <span className="topbar-profile" title={email}><span className="profile-avatar small">{(displayName || email || "S").charAt(0).toUpperCase()}</span></span>
       </div>
@@ -341,6 +341,7 @@ export default function App() {
   const [toast, setToast] = useState("");
   const [reminderSyncToken, setReminderSyncToken] = useState(0);
   const [notificationToken, setNotificationToken] = useState(0);
+  const [newReminderIds, setNewReminderIds] = useState([]);
   useEffect(() => {
     let alive = true;
     setProfileName("");
@@ -377,7 +378,7 @@ export default function App() {
         const result = await syncGeneratedReminders(session.user.id);
         if (active) {
           setReminderSyncToken((value) => value + 1);
-          if (result.created > 0) setNotificationToken((value) => value + 1);
+          if (result.created > 0) { setNewReminderIds(result.newReminders.map((item) => item.id)); setNotificationToken((value) => value + 1); }
         }
       } catch (error) {
         console.warn("Acadly reminder sync failed:", error?.message || error);
