@@ -119,7 +119,6 @@ export function FocusPage({ userId }) {
   const currentDuration = durationFor(mode);
   const elapsed = Math.max(0, currentDuration - remaining);
   const progress = Math.min(100, currentDuration ? (elapsed / currentDuration) * 100 : 0);
-  const selectedSubject = subjects.find((item) => item.id === subjectId);
   const availableChapters = chapters.filter((item) => item.subject_id === subjectId);
 
   const startTimer = () => {
@@ -201,7 +200,6 @@ export function FocusPage({ userId }) {
   };
 
   const historyMinutes = useMemo(() => history.reduce((total, item) => total + (item.duration_seconds || 0), 0) / 60, [history]);
-  const percent = Math.round(progress);
 
   return (
     <div className="focus-page">
