@@ -21,7 +21,7 @@ export function NotificationCenter({ userId, onNavigate, syncToken = 0, notifica
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [permission, setPermission] = useState(typeof Notification === "undefined" ? "unsupported" : Notification.permission);
+  const [permission, setPermission] = useState(typeof window === "undefined" || !("Notification" in window) ? "unsupported" : window.Notification.permission);
   const announcedRef = useState(() => new Set())[0];
   const [preferences, setPreferences] = useState({ reminders_enabled: true, quiet_hours_start: "", quiet_hours_end: "" });
   const [open, setOpen] = useState(false);
@@ -44,7 +44,7 @@ export function NotificationCenter({ userId, onNavigate, syncToken = 0, notifica
 
   useEffect(() => { load(); }, [load, syncToken]);
   useEffect(() => {
-    if (notificationToken < 1 || typeof Notification === "undefined" || Notification.permission !== "granted" || document.visibilityState !== "visible") return;
+    if (notificationToken < 1 || typeof window === "undefined" || !("Notification" in window) || window.Notification.permission !== "granted" || document.visibilityState !== "visible") return;
     const announce = async () => {
       const { data, error: queryError } = await supabase.from("reminders").select("*").eq("is_read", false).is("dismissed_at", null).lte("remind_at", new Date().toISOString()).order("remind_at", { ascending: true }).limit(10);
       if (queryError) return;
@@ -52,7 +52,7 @@ export function NotificationCenter({ userId, onNavigate, syncToken = 0, notifica
         const key = item.event_key || item.id;
         if (announcedRef.has(key)) return;
         announcedRef.add(key);
-        new Notification(item.title, { body: item.body || "You have an Acadly reminder.", tag: key });
+        new window.Notification(item.title, { body: item.body || "You have an Acadly reminder.", tag: key });
       });
     };
     announce();
@@ -82,11 +82,11 @@ export function NotificationCenter({ userId, onNavigate, syncToken = 0, notifica
 
   async function enableBrowserNotifications() {
     if (typeof Notification === "undefined") { setPermission("unsupported"); return; }
-    const next = await Notification.requestPermission();
+    const next = await window.Notification.requestPermission();
     setPermission(next);
     if (next === "granted") {
       const latest = visible.filter((item) => !item.is_read && new Date(item.remind_at) <= new Date()).slice(0, 3);
-      latest.forEach((item) => new Notification(item.title, { body: item.body || "You have an Acadly reminder.", tag: item.event_key || item.id }));
+      latest.forEach((item) => new window.Notification(item.title, { body: item.body || "You have an Acadly reminder.", tag: item.event_key || item.id }));
     }
   }
 
