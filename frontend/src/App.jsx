@@ -1,13 +1,11 @@
 import {
   Activity,
-  AlarmClock,
   ArrowDownRight,
   ArrowRight,
   BookOpen,
   CalendarDays,
   Check,
   ChevronDown,
-  ChevronLeft,
   ChevronRight,
   CircleHelp,
   Clock3,
@@ -26,12 +24,12 @@ import {
   Target,
   Timer,
   TrendingUp,
-  Upload,
   X,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { EmptyState } from "./components/ui/Feedback.jsx";
 
-const BRAND_NAME = "Acadly";
+const BRAND_NAME = import.meta.env.VITE_BRAND_NAME?.trim() || "Acadly";
 
 const navigation = [
   { section: "WORKSPACE", items: [
@@ -169,7 +167,7 @@ function StudyChart() {
   );
 }
 
-function Dashboard({ tasks, toggleTask, onAddTask }) {
+function Dashboard({ tasks, toggleTask, onAddTask, onNavigate }) {
   const completed = tasks.filter((task) => task.done).length;
   return (
     <div className="dashboard-page">
@@ -201,14 +199,14 @@ function Dashboard({ tasks, toggleTask, onAddTask }) {
               <time>{task.time}</time>
             </div>
           ))}</div>
-          {tasks.length === 0 && <div className="empty-inline">No tasks yet. Add one to get started.</div>}
+          {tasks.length === 0 && <EmptyState title="Your task list is clear" description="Add a study task to give your next session a direction." actionLabel="Add a task" onAction={onAddTask} /> }
           <button className="add-task-link" onClick={onAddTask}><Plus size={15} /> Add another task</button>
         </article>
       </section>
 
       <section className="lower-grid">
         <article className="panel exams-panel">
-          <div className="panel-heading"><div><h2>Upcoming exams</h2><p>Stay prepared and on track</p></div><button className="text-button">See all <ArrowRight size={14} /></button></div>
+          <div className="panel-heading"><div><h2>Upcoming exams</h2><p>Stay prepared and on track</p></div><button className="text-button" onClick={() => onNavigate("exams")}>See all <ArrowRight size={14} /></button></div>
           {upcoming.map((exam) => (
             <div className="exam-row" key={exam.title}>
               <div className={cx("exam-icon", exam.color)}><CalendarDays size={18} /></div>
@@ -282,7 +280,6 @@ export default function App() {
     window.addEventListener("acadly:navigate", listener);
     return () => window.removeEventListener("acadly:navigate", listener);
   }, []);
-  const pageTitle = useMemo(() => navigation.flatMap((g) => g.items).find((i) => i.id === active)?.label || "Overview", [active]);
   function addTask(task) {
     setTasks((current) => [...current, { ...task, id: Date.now(), done: false }]);
     setToast("Task added to your preview workspace");
@@ -294,7 +291,7 @@ export default function App() {
       <div className="main-column">
         <Topbar active={active} onMenu={() => setMobileOpen(true)} />
         <main id="main-content" className="main-content">
-          {active === "overview" ? <Dashboard tasks={tasks} toggleTask={(id) => setTasks((current) => current.map((t) => t.id === id ? { ...t, done: !t.done } : t))} onAddTask={() => setDialogOpen(true)} /> : <PlaceholderPage active={active} />}
+          {active === "overview" ? <Dashboard tasks={tasks} toggleTask={(id) => setTasks((current) => current.map((t) => t.id === id ? { ...t, done: !t.done } : t))} onAddTask={() => setDialogOpen(true)} onNavigate={setActive} /> : <PlaceholderPage active={active} />}
         </main>
         <footer className="app-footer"><span>© 2026 {BRAND_NAME}</span><span>Made for focused learning <span className="footer-heart">✦</span></span></footer>
       </div>
