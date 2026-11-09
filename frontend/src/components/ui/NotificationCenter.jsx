@@ -16,7 +16,7 @@ const labelDate = (value) => {
 };
 const typeIcon = (type) => type === "exam" ? "EXAM" : type === "revision" ? "REVISION" : type === "task" ? "TASK" : "UPDATE";
 
-export function NotificationCenter({ userId, onNavigate, syncToken = 0, notificationToken = 0 }) {
+export function NotificationCenter({ userId, onNavigate, syncToken = 0, notificationToken = 0, newReminderIds = [] }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -41,9 +41,9 @@ export function NotificationCenter({ userId, onNavigate, syncToken = 0, notifica
 
   useEffect(() => { load(); }, [load, syncToken]);
   useEffect(() => {
-    if (notificationToken < 1 || typeof window === "undefined" || !("Notification" in window) || window.Notification.permission !== "granted" || document.visibilityState !== "visible") return;
+    if (!newReminderIds.length || notificationToken < 1 || typeof window === "undefined" || !("Notification" in window) || window.Notification.permission !== "granted" || document.visibilityState !== "visible") return;
     const announce = async () => {
-      const { data, error: queryError } = await supabase.from("reminders").select("*").eq("is_read", false).is("dismissed_at", null).lte("remind_at", new Date().toISOString()).order("remind_at", { ascending: true }).limit(10);
+      const { data, error: queryError } = await supabase.from("reminders").select("*").in("id", newReminderIds).eq("is_read", false).is("dismissed_at", null).lte("remind_at", new Date().toISOString());
       if (queryError) return;
       (data || []).forEach((item) => {
         const key = item.event_key || item.id;
@@ -53,7 +53,7 @@ export function NotificationCenter({ userId, onNavigate, syncToken = 0, notifica
       });
     };
     announce();
-  }, [notificationToken, userId]);
+  }, [notificationToken, newReminderIds, userId]);
 
   async function update(id, changes) {
     setBusy(true);
