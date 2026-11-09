@@ -136,7 +136,7 @@ function Sidebar({ active, setActive, mobileOpen, closeMobile, onSignOut, displa
   );
 }
 
-function Topbar({ onMenu, active, displayName, email, userId, onNavigate, syncToken, notificationToken }) {
+function Topbar({ onMenu, active, displayName, email, userId, onNavigate, syncToken, notificationToken, newReminderIds }) {
   const title = navigation.flatMap((g) => g.items).find((i) => i.id === active)?.label || (active === "settings" ? "Settings" : "Overview");
   return (
     <header className="topbar">
