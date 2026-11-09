@@ -169,7 +169,7 @@ export function RevisionsPage({ userId }) {
       scheduled_for: nextDate.toISOString(), notes: null,
     }).select().single();
     setRevisions((rows) => nextError ? rows.map((item) => item.id === data.id ? data : item) : [nextRow, ...rows.map((item) => item.id === data.id ? data : item)]);
-    setToast(nextError ? "Revision completed, but the next one could not be scheduled. Add it manually." : "Revision completed. Next revision scheduled in " + interval + " days.");
+    setToast(nextError ? "Revision completed, but the next one could not be scheduled. Use Add to retry: " + nextError.message : "Revision completed. Next revision scheduled in " + interval + " days.");
     setBusyId(null);
   }
 
@@ -197,13 +197,13 @@ export function RevisionsPage({ userId }) {
     event.preventDefault();
     const parsed = parseIntervals(intervalDraft);
     if (!parsed) return setToast("Enter increasing whole-day intervals, e.g. 1, 3, 7, 14, 30.");
-    const { error } = await supabase.from("user_preferences").update({ revision_intervals_days: parsed }).eq("user_id", userId);
+    const { error } = await supabase.from("user_preferences").upsert({ user_id: userId, revision_intervals_days: parsed }, { onConflict: "user_id" });
     if (error) return setToast(error.message || "Could not save revision intervals.");
     setIntervals(parsed); setIntervalDraft(parsed.join(", ")); setShowSettings(false);
     setToast("Revision intervals saved.");
   }
 
-  const candidates = chapters.filter((chapter) => !activeRows.some((row) => row.chapter_id === chapter.id));
+  const candidates = chapters.filter((chapter) => chapter.status !== "completed" && !activeRows.some((row) => row.chapter_id === chapter.id));
   const dueCount = dueRows.length;
   const upcomingCount = activeRows.length - dueCount;
   const completedCount = completedRows.length;
