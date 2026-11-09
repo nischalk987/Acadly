@@ -77,7 +77,7 @@ function SubjectDialog({ initial, onClose, onSave }) {
             <legend>Choose a color</legend>
             <div className="subject-color-options">
               {SUBJECT_COLORS.map((value) => (
-                <button key={value} type="button" aria-label={\`Choose color \${value}\`} aria-pressed={color === value} className={cx("subject-color-swatch", color === value && "subject-color-selected")} style={{ "--subject-color": value }} onClick={() => setColor(value)} />
+                <button key={value} type="button" aria-label={"Choose color " + value} aria-pressed={color === value} className={cx("subject-color-swatch", color === value && "subject-color-selected")} style={{ "--subject-color": value }} onClick={() => setColor(value)} />
               ))}
             </div>
           </fieldset>
