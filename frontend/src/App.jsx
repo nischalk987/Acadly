@@ -375,7 +375,10 @@ export default function App() {
       syncInFlight = true;
       try {
         const result = await syncGeneratedReminders(session.user.id);
-        if (active) { setReminderSyncToken((value) => value + 1); setNotificationToken((value) => value + 1); }
+        if (active) {
+          setReminderSyncToken((value) => value + 1);
+          if (result.created > 0) setNotificationToken((value) => value + 1);
+        }
       } catch (error) {
         console.warn("Acadly reminder sync failed:", error?.message || error);
       } finally { syncInFlight = false; }
