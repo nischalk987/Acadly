@@ -138,6 +138,8 @@ export function ProfileSettings({ session, onDisplayNameChange, onSignOut }) {
       return;
     }
 
+    if (Boolean(quietStart) !== Boolean(quietEnd)) { setError("Choose both a quiet-hours start and end, or clear both."); return; }
+
     setSaving(true);
     setError("");
     setNotice("");
