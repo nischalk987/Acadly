@@ -37,6 +37,7 @@ export function FocusPage({ userId }) {
   const [draftPreferences, setDraftPreferences] = useState(DEFAULTS);
   const completionLock = useRef(false);
   const sessionStart = useRef(null);
+  const completionEnd = useRef(null);
 
   const durationFor = useCallback((timerMode, prefs = preferences) => {
     const minutes = timerMode === "focus" ? prefs.focus_minutes : timerMode === "short_break" ? prefs.short_break_minutes : prefs.long_break_minutes;
@@ -103,7 +104,7 @@ export function FocusPage({ userId }) {
   }, [running, deadline]);
 
   useEffect(() => {
-    storeState({ mode, remaining, running, deadline, pausedRemaining, subjectId, chapterId, focusCount, sessionStartedAt: sessionStart.current });
+    storeState({ mode, remaining, running, deadline, pausedRemaining, subjectId, chapterId, focusCount, sessionStartedAt: sessionStart.current, completionEnd: completionEnd.current });
   }, [storeState, mode, remaining, running, deadline, pausedRemaining, subjectId, chapterId, focusCount]);
 
   useEffect(() => {
@@ -122,7 +123,7 @@ export function FocusPage({ userId }) {
 
   const startTimer = () => {
     if (remaining <= 0) return;
-    if (mode === "focus" && !sessionStart.current) sessionStart.current = new Date().toISOString();
+    if (mode === "focus" && !sessionStart.current) sessionStart.current = new Date().toISOString();\n    completionEnd.current = null;
     const end = Date.now() + remaining * 1000;
     setDeadline(end); setPausedRemaining(null); setRunning(true);
   };
@@ -147,7 +148,7 @@ export function FocusPage({ userId }) {
     if (mode !== "focus" || remaining > 0 || completionLock.current) return;
     completionLock.current = true;
     const start = sessionStart.current ? new Date(sessionStart.current) : new Date(Date.now() - durationFor("focus") * 1000);
-    const endedAt = new Date().toISOString();
+    const endedAt = completionEnd.current || new Date().toISOString();
     const durationSeconds = Math.max(0, Math.min(durationFor("focus"), Math.round((Date.parse(endedAt) - start.getTime()) / 1000)));
     const { data, error } = await supabase.from("study_sessions").insert({
       user_id: userId,
@@ -183,7 +184,7 @@ export function FocusPage({ userId }) {
     if (error) setToast(error.message || "Could not save timer settings.");
     else {
       setPreferences(next); setDraftPreferences(next);
-      if (!running) { setRemaining(durationFor(mode, next)); setPausedRemaining(null); }
+      if (!running && remaining === durationFor(mode)) { setRemaining(durationFor(mode, next)); setPausedRemaining(null); }
       setToast("Timer preferences saved.");
       setShowSettings(false);
     }
