@@ -223,7 +223,7 @@ export function ProfileSettings({ session, onDisplayNameChange, onSignOut }) {
         profile: profile || {},
         preferences: preferences || {},
         records: {},
-        file_note: "Notes/PDF metadata and storage paths are included in records.notes. Binary files are not embedded in this JSON export.",
+        file_note: "Note metadata and private storage paths are included. Avatar and note/PDF/image binary files are not embedded in this JSON export; download those files separately while signed in.",
       };
 
       const results = await Promise.all(EXPORT_TABLES.map(async (table) => {
@@ -234,6 +234,7 @@ export function ProfileSettings({ session, onDisplayNameChange, onSignOut }) {
           const { data, error: queryError } = await supabase
             .from(table)
             .select("*")
+            .order("id", { ascending: true })
             .range(offset, offset + pageSize - 1);
           if (queryError) throw queryError;
           rows.push(...(data || []));
