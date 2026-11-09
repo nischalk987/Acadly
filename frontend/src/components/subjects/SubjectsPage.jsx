@@ -176,21 +176,21 @@ function ChapterRow({ chapter, index, total, onEdit, onDelete, onStatus, onMove 
       <div className="chapter-order-controls">
         <GripVertical size={14} aria-hidden="true" />
         <div>
-          <button type="button" aria-label={\`Move \${chapter.title} up\`} disabled={index === 0} onClick={() => onMove(index, index - 1)}>⌃</button>
-          <button type="button" aria-label={\`Move \${chapter.title} down\`} disabled={index === total - 1} onClick={() => onMove(index, index + 1)}>⌄</button>
+          <button type="button" aria-label={"Move " + chapter.title + " up"} disabled={index === 0} onClick={() => onMove(index, index - 1)}>⌃</button>
+          <button type="button" aria-label={"Move " + chapter.title + " down"} disabled={index === total - 1} onClick={() => onMove(index, index + 1)}>⌄</button>
         </div>
       </div>
-      <span className={cx("chapter-status-dot", \`chapter-status-\${chapter.status}\`)} />
+      <span className={cx("chapter-status-dot", "chapter-status-" + chapter.status)} />
       <div className="chapter-row-copy">
         <strong>{chapter.title}</strong>
         {chapter.description && <small>{chapter.description}</small>}
       </div>
-      <select aria-label={\`Status for \${chapter.title}\`} className={cx("chapter-status-select", \`chapter-status-select-\${chapter.status}\`)} value={chapter.status} onChange={(event) => onStatus(chapter, event.target.value)}>
+      <select aria-label={"Status for " + chapter.title} className={cx("chapter-status-select", "chapter-status-select-" + chapter.status)} value={chapter.status} onChange={(event) => onStatus(chapter, event.target.value)}>
         {CHAPTER_STATUSES.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
       </select>
       <div className="chapter-row-actions">
-        <button type="button" aria-label={\`Edit \${chapter.title}\`} onClick={() => onEdit(chapter)}><Pencil size={14} /></button>
-        <button type="button" aria-label={\`Delete \${chapter.title}\`} onClick={() => onDelete(chapter)}><Trash2 size={14} /></button>
+        <button type="button" aria-label={"Edit " + chapter.title} onClick={() => onEdit(chapter)}><Pencil size={14} /></button>
+        <button type="button" aria-label={"Delete " + chapter.title} onClick={() => onDelete(chapter)}><Trash2 size={14} /></button>
       </div>
       <span className="sr-only">{status.label}</span>
     </div>
@@ -215,7 +215,7 @@ function SubjectCard({ subject, chapters, expanded, onToggle, onEdit, onArchive,
           <button type="button" aria-label={\`Delete \${subject.name}\`} onClick={() => onDelete(subject)}><Trash2 size={14} /></button>
         </div>
       </div>
-      <div className="subject-progress-track"><span style={{ width: \`\${percent}%\`, background: subject.color }} /></div>
+      <div className="subject-progress-track"><span style={{ width: String(percent) + "%", background: subject.color }} /></div>
       {subject.description && <p className="subject-description">{subject.description}</p>}
       {expanded && (
         <div className="subject-chapters">
