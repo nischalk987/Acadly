@@ -1,3 +1,4 @@
+import { createElement } from "react";
 import { AlertCircle, ArrowRight, Inbox } from "lucide-react";
 
 export function LoadingState({ label = "Loading your workspace", compact = false }) {
@@ -10,7 +11,7 @@ export function LoadingState({ label = "Loading your workspace", compact = false
 }
 
 export function EmptyState({
-  icon: Icon = Inbox,
+  icon: _Icon = Inbox,
   title = "Nothing here yet",
   description = "Your items will appear here when you add them.",
   actionLabel,
@@ -18,7 +19,7 @@ export function EmptyState({
 }) {
   return (
     <div className="empty-state">
-      <span className="empty-state-icon"><Icon size={17} aria-hidden="true" /></span>
+      <span className="empty-state-icon">{createElement(_Icon, { size: 17, "aria-hidden": true })}</span>
       <strong>{title}</strong>
       <p>{description}</p>
       {actionLabel && onAction && (
