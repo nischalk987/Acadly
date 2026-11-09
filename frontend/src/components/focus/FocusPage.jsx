@@ -83,7 +83,7 @@ export function FocusPage({ userId }) {
         }
         sessionStart.current = saved.sessionStartedAt || null;
       } else {
-        setRemaining(nextPrefs.focus_minutes * 60); setMode("focus"); setRunning(false); setDeadline(null); setPausedRemaining(null);
+        setRemaining(nextPrefs.focus_minutes * 60); setMode("focus"); setRunning(false); setDeadline(null); setPausedRemaining(null); sessionStart.current = null; completionEnd.current = null;
       }
     } catch (error) { setLoadError(error.message || "Could not load focus settings and history."); }
     finally { setLoading(false); }
@@ -109,6 +109,7 @@ export function FocusPage({ userId }) {
 
   useEffect(() => {
     if (remaining !== 0 || running || completionLock.current) return;
+    if (mode === "focus" && !completionEnd.current) completionEnd.current = new Date().toISOString();
     if ("Notification" in window && Notification.permission === "granted") {
       new Notification(mode === "focus" ? "Focus session finished" : "Break finished", { body: mode === "focus" ? "Nice work. Record your completed focus session in Acadly." : "Your break is over. Ready to focus again?" });
     }
@@ -123,7 +124,8 @@ export function FocusPage({ userId }) {
 
   const startTimer = () => {
     if (remaining <= 0) return;
-    if (mode === "focus" && !sessionStart.current) sessionStart.current = new Date().toISOString();\n    completionEnd.current = null;
+    if (mode === "focus" && !sessionStart.current) sessionStart.current = new Date().toISOString();
+    completionEnd.current = null;
     const end = Date.now() + remaining * 1000;
     setDeadline(end); setPausedRemaining(null); setRunning(true);
   };
@@ -134,13 +136,13 @@ export function FocusPage({ userId }) {
   };
 
   const resetTimer = () => {
-    setRunning(false); setDeadline(null); setPausedRemaining(null); sessionStart.current = null;
+    setRunning(false); setDeadline(null); setPausedRemaining(null); sessionStart.current = null; completionEnd.current = null;
     completionLock.current = false;
     setRemaining(durationFor(mode));
   };
 
   const selectMode = (nextMode) => {
-    setMode(nextMode); setRunning(false); setDeadline(null); setPausedRemaining(null); sessionStart.current = null; completionLock.current = false;
+    setMode(nextMode); setRunning(false); setDeadline(null); setPausedRemaining(null); sessionStart.current = null; completionEnd.current = null; completionLock.current = false;
     setRemaining(durationFor(nextMode));
   };
 
