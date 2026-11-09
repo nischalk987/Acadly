@@ -340,6 +340,7 @@ export default function App() {
   const [tasks, setTasks] = useState(initialTasks);
   const [toast, setToast] = useState("");
   const [reminderSyncToken, setReminderSyncToken] = useState(0);
+  const [notificationToken, setNotificationToken] = useState(0);
   useEffect(() => {
     let alive = true;
     setProfileName("");
@@ -374,7 +375,7 @@ export default function App() {
       syncInFlight = true;
       try {
         const result = await syncGeneratedReminders(session.user.id);
-        if (active && result.created > 0) setReminderSyncToken((value) => value + 1);
+        if (active) { setReminderSyncToken((value) => value + 1); setNotificationToken((value) => value + 1); }
       } catch (error) {
         console.warn("Acadly reminder sync failed:", error?.message || error);
       } finally { syncInFlight = false; }
@@ -414,7 +415,7 @@ export default function App() {
     <div className="app-frame">
       <Sidebar active={active} setActive={setActive} mobileOpen={mobileOpen} closeMobile={() => setMobileOpen(false)} onSignOut={signOut} displayName={displayName} email={email} />
       <div className="main-column">
-        <Topbar active={active} onMenu={() => setMobileOpen(true)} displayName={displayName} email={email} userId={session.user.id} onNavigate={setActive} syncToken={reminderSyncToken} />
+        <Topbar active={active} onMenu={() => setMobileOpen(true)} displayName={displayName} email={email} userId={session.user.id} onNavigate={setActive} syncToken={reminderSyncToken} notificationToken={notificationToken} />
         <main id="main-content" className="main-content">
           {active === "overview" ? <Dashboard subjectProgress={subjectProgress} tasks={tasks} toggleTask={(id) => setTasks((current) => current.map((t) => t.id === id ? { ...t, done: !t.done } : t))} onAddTask={() => setDialogOpen(true)} onNavigate={setActive} /> : active === "subjects" ? <SubjectsPage userId={session.user.id} onProgressChange={(subjects, chapters) => setSubjectProgress({ subjects, chapters })} /> : active === "planner" ? <PlannerPage userId={session.user.id} /> : active === "focus" ? <FocusPage userId={session.user.id} /> : active === "exams" ? <ExamsPage userId={session.user.id} /> : active === "notes" ? <NotesPage userId={session.user.id} /> : active === "revisions" ? <RevisionsPage userId={session.user.id} /> : active === "settings" ? <ProfileSettings session={session} onDisplayNameChange={setProfileName} onSignOut={signOut} /> : <PlaceholderPage active={active} />}
         </main>
