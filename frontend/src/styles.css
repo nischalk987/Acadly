@@ -497,3 +497,78 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .subject-progress-overview>div strong{color:#e4e5f7;font:700 13px Manrope,sans-serif}
 .subject-progress-overview .text-button{display:flex;align-items:center;gap:5px;margin-left:auto;padding:6px 0;border:0;color:#c4b5fd;background:transparent;font-size:9px;cursor:pointer}
 @media(max-width:560px){.subject-progress-overview{gap:12px;padding:12px}.subject-progress-overview>div strong{font-size:11px}}
+
+
+/* Study planner and timetable */
+.planner-page{max-width:1180px;margin:0 auto;padding:30px 34px 48px}
+.planner-header{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:21px}
+.planner-header h1{margin:0;color:#f0f2fa;font:750 27px Manrope,sans-serif;letter-spacing:-.055em}
+.planner-header p:last-child{margin:7px 0 0;color:#8b98af;font-size:11px}
+.planner-header .button{min-height:37px;font-size:10px}
+.planner-toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:13px;padding:11px 13px;border:1px solid #2b3650;border-radius:11px;background:#151e2d}
+.planner-date-controls{display:flex;align-items:center;gap:8px;min-width:0}
+.planner-date-controls>button:not(.planner-today){display:grid;place-items:center;width:29px;height:29px;border:1px solid #344158;border-radius:7px;color:#aebbd0;background:#111a29;cursor:pointer}
+.planner-date-controls .planner-today{height:29px;padding:0 10px;border:1px solid #4a426c;border-radius:7px;color:#cbbcf8;background:#30264b;font-size:9px;font-weight:650;cursor:pointer}
+.planner-date-controls>strong{margin-left:7px;color:#e1e7f2;font-size:11px;white-space:nowrap}
+.planner-mode{display:flex;gap:3px;padding:3px;border:1px solid #2e3a50;border-radius:8px;background:#0e1624}
+.planner-mode button{min-width:45px;height:26px;border:0;border-radius:6px;color:#8795ac;background:transparent;font-size:9px;cursor:pointer}
+.planner-mode button.selected{color:#eee9ff;background:#514078}
+.planner-filterbar{display:flex;gap:9px;margin-bottom:15px}
+.planner-search{display:flex;align-items:center;gap:8px;flex:1;min-width:0;height:37px;padding:0 11px;border:1px solid #344158;border-radius:8px;color:#8998ae;background:#111a29}
+.planner-search:focus-within{border-color:#8b68da}
+.planner-search input{width:100%;min-width:0;border:0;outline:0;color:#e9edf6;background:transparent;font-size:10px}
+.planner-filterbar>select{height:37px;min-width:130px;padding:0 9px;border:1px solid #344158;border-radius:8px;color:#bdc8da;background:#111a29;font-size:9px}
+.planner-overdue{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:11px 13px;border:1px solid #74444b;border-radius:9px;color:#fda4af;background:#341f2a}
+.planner-overdue>div{display:flex;flex:1;flex-direction:column;gap:3px}
+.planner-overdue strong{font-size:10px}.planner-overdue span{color:#c69da6;font-size:9px}
+.planner-overdue button{border:0;color:#fecdd3;background:transparent;font-size:9px;font-weight:700;cursor:pointer}
+.planner-day,.planner-week{overflow:hidden;border:1px solid #2a354b;border-radius:12px;background:#141d2c}
+.planner-day>header{display:flex;justify-content:space-between;padding:15px 17px;border-bottom:1px solid #2b3549}
+.planner-day>header strong{color:#e2e8f3;font-size:11px}.planner-day>header span{color:#8694ab;font-size:9px}
+.planner-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+.planner-week-column{min-width:0;min-height:220px;border-right:1px solid #293449}
+.planner-week-column:last-child{border-right:0}
+.planner-week-date{display:flex;align-items:center;flex-direction:column;gap:5px;width:100%;padding:13px 4px 11px;border:0;border-bottom:1px solid #293449;color:#8997ae;background:#182235;cursor:pointer}
+.planner-week-date span{font-size:9px}.planner-week-date strong{display:grid;place-items:center;width:27px;height:27px;border-radius:50%;color:#e8edf6;font:700 12px Manrope,sans-serif}
+.planner-week-date:hover strong{background:#4a3a72}
+.planner-week-items{display:flex;flex-direction:column;gap:6px;padding:8px 6px}
+.planner-week-event{display:flex;flex-direction:column;gap:4px;width:100%;min-width:0;padding:7px 6px;border:1px solid #3d4766;border-left:3px solid #9270e8;border-radius:6px;color:#e5e7f4;background:#302c4a;text-align:left;cursor:pointer}
+.planner-week-event.priority-high{border-left-color:#fb7185;background:#402631}
+.planner-week-event.priority-low{border-left-color:#38bdf8;background:#1e3446}
+.planner-week-event>span{color:#b8a9eb;font-size:8px}.planner-week-event>strong{display:-webkit-box;overflow:hidden;color:#e5e7f4;font-size:9px;line-height:1.35;-webkit-line-clamp:3;-webkit-box-orient:vertical}
+.planner-week-event.has-overlap{outline:1px solid #fb7185}
+.planner-week-event>small{color:#fda4af;font-size:8px}
+.planner-week-event.is-complete{opacity:.5;text-decoration:line-through}
+.planner-empty-add{display:grid;place-items:center;width:100%;height:34px;border:1px dashed #3a4860;border-radius:6px;color:#8292aa;background:transparent;cursor:pointer}
+.planner-task-row{position:relative;display:flex;align-items:center;gap:10px;min-height:65px;padding:10px 14px;border-bottom:1px solid #273248;background:#151f30}
+.planner-task-row:last-child{border-bottom:0}
+.planner-task-row.priority-high{border-left:3px solid #fb7185}
+.planner-task-row.priority-medium{border-left:3px solid #a78bfa}
+.planner-task-row.priority-low{border-left:3px solid #38bdf8}
+.planner-check{display:grid;place-items:center;flex:0 0 auto;width:19px;height:19px;border:1px solid #65718a;border-radius:6px;color:#fff;background:transparent;cursor:pointer}
+.planner-check.checked{border-color:#26976d;background:#16805c}
+.planner-task-copy{display:flex;flex:1;flex-direction:column;gap:3px;min-width:0}
+.planner-task-copy strong{overflow:hidden;color:#e3e9f4;font-size:10px;text-overflow:ellipsis;white-space:nowrap}
+.planner-task-copy>span{overflow:hidden;color:#9caac0;font-size:9px;text-overflow:ellipsis;white-space:nowrap}
+.planner-task-copy small{color:#74849d;font-size:8px}
+.planner-task-row.is-complete .planner-task-copy strong{text-decoration:line-through;opacity:.65}
+.planner-row-actions{display:flex;gap:3px;flex:0 0 auto}
+.planner-row-actions button{display:grid;place-items:center;width:27px;height:27px;border:1px solid transparent;border-radius:6px;color:#8290a7;background:transparent;cursor:pointer}
+.planner-row-actions button:hover{border-color:#3c4963;color:#e1d8ff;background:#292842}
+.planner-task-row.has-overlap{background:#2c202f}
+.planner-overlap-tag{position:absolute;right:14px;bottom:3px;color:#fda4af;font-size:7px}
+.planner-all-tasks{margin-top:19px;overflow:hidden;border:1px solid #29354a;border-radius:11px;background:#141d2c}
+.planner-all-tasks>header{display:flex;align-items:center;gap:9px;padding:13px 15px;border-bottom:1px solid #293449}
+.planner-all-tasks h2{margin:0;color:#e1e7f2;font:700 11px Manrope,sans-serif}
+.planner-all-tasks>header span{display:grid;place-items:center;min-width:20px;height:18px;padding:0 5px;border-radius:10px;color:#c7b8fa;background:#3b3157;font-size:8px}
+.planner-task-dialog .field-label{margin-bottom:12px}
+.planner-task-dialog textarea{width:100%;padding:10px 11px;border:1px solid #344158;border-radius:8px;outline:0;color:#e6eaf3;background:#0e1624;font:inherit;font-size:10px;resize:vertical}
+.planner-task-dialog textarea:focus{border-color:#9270e8;box-shadow:0 0 0 3px #8b5cf620}
+.planner-fields-two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.planner-optional{color:#77859b;font-size:9px;font-weight:400}
+.planner-all-day{display:flex;align-items:center;gap:8px;margin:0 0 12px;color:#aebbd0;font-size:9px}
+.planner-all-day input{accent-color:#8b68da}
+.planner-confirm h2{margin:0 0 8px;color:#f0eff8;font:700 17px Manrope,sans-serif}
+.planner-confirm p{margin:0 0 15px;color:#9aa6ba;font-size:10px;line-height:1.6}
+@media(max-width:900px){.planner-page{padding:25px 21px 38px}.planner-week-column{min-height:180px}.planner-week-items{padding:6px 4px}.planner-week-event{padding:6px 4px}}
+@media(max-width:680px){.planner-page{padding:20px 13px 30px}.planner-header{align-items:flex-start;flex-direction:column}.planner-header .button{width:100%;justify-content:center}.planner-toolbar{padding:9px}.planner-filterbar{flex-direction:column}.planner-filterbar>select{width:100%}.planner-fields-two{grid-template-columns:1fr}.planner-task-row{padding:10px}.planner-row-actions button{width:25px;height:25px}}
