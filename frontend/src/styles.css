@@ -262,3 +262,81 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
 }
+
+
+/* Shared feedback patterns for loading, empty, error and disabled states. */
+.button:disabled, .icon-button:disabled, .nav-link:disabled {
+  cursor: not-allowed;
+  opacity: .48;
+  filter: saturate(.55);
+}
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 150px;
+  color: #aab4c7;
+  font-size: 12px;
+}
+.loading-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #4b3c70;
+  border-top-color: #b69aff;
+  border-radius: 50%;
+  animation: acadly-spin .8s linear infinite;
+}
+.skeleton {
+  display: block;
+  overflow: hidden;
+  position: relative;
+  border-radius: 7px;
+  background: #202b3e;
+}
+.skeleton::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, #ffffff0b, transparent);
+  animation: acadly-shimmer 1.4s ease-in-out infinite;
+}
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 22px 14px 12px;
+  text-align: center;
+}
+.empty-state-icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  margin-bottom: 10px;
+  border: 1px solid #433365;
+  border-radius: 11px;
+  color: #c4b5fd;
+  background: #35245466;
+}
+.empty-state strong { color: #dfe4f0; font-size: 11px; }
+.empty-state p { max-width: 250px; margin: 5px 0 11px; color: #8793a9; font-size: 9px; line-height: 1.55; }
+.empty-state .text-button { font-size: 10px; }
+.error-state {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 13px;
+  border: 1px solid #713d4b;
+  border-radius: 10px;
+  color: #fecaca;
+  background: #3a1c294d;
+}
+.error-state p { margin: 4px 0 0; color: #d5a4ae; font-size: 10px; line-height: 1.5; }
+@keyframes acadly-spin { to { transform: rotate(360deg); } }
+@keyframes acadly-shimmer { to { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) {
+  .loading-spinner, .skeleton::after { animation: none; }
+}
