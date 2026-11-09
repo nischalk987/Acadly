@@ -1,6 +1,8 @@
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from auth import AuthenticatedStudent, get_current_student
 
 
 class Settings(BaseSettings):
@@ -17,7 +19,16 @@ class Settings(BaseSettings):
 
     @property
     def allowed_origins(self) -> list[str]:
-        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+        origins = [
+            origin.strip().rstrip("/")
+            for origin in self.cors_origins.split(",")
+            if origin.strip()
+        ]
+        if not origins or "*" in origins:
+            raise ValueError(
+                "CORS_ORIGINS must contain explicit origins; wildcard origins are forbidden."
+            )
+        return origins
 
 
 settings = Settings()
@@ -25,7 +36,7 @@ settings = Settings()
 app = FastAPI(
     title="Acadly API",
     description="Backend API for the free student study-management platform.",
-    version="0.1.0",
+    version="0.2.0",
 )
 
 app.add_middleware(
@@ -45,3 +56,12 @@ async def root() -> dict[str, str]:
 @app.get("/api/health", tags=["meta"])
 async def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/api/auth/me", tags=["auth"])
+async def auth_me(
+    student: AuthenticatedStudent = Depends(get_current_student),
+) -> dict[str, str | None]:
+    """Return the authenticated student's canonical identity."""
+
+    return {"id": str(student.id), "email": student.email}

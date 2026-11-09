@@ -218,3 +218,8 @@ The repository includes the app shell, starter API, Supabase database baseline a
 ## License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE).
+
+
+## Backend security
+
+Protected API routes validate Supabase access tokens with Supabase Auth. Configure `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` in the backend environment, and set `CORS_ORIGINS` to exact trusted frontend origins. Do not configure service-role/secret keys in the frontend. See [docs/SECURITY_MODEL.md](docs/SECURITY_MODEL.md) for the ownership model and live two-student RLS integration test setup.
