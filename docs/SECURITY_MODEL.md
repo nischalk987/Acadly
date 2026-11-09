@@ -47,3 +47,15 @@ Normal backend CI runs the JWT-verification unit tests and API tests. To run the
 - \`ACADLY_RLS_STUDENT_B_TOKEN\`
 
 The two tokens must belong to distinct test accounts. The integration tests create temporary records owned by Student B, verify Student A receives no rows and cannot mutate/delete them, verify Student B cannot transfer ownership, and clean up using Student B's token. Coverage includes subjects, study sessions, exams, reminders, and notes/file metadata. The tests are skipped when credentials are absent; never use production student accounts or data for this suite.
+
+`authenticated` has only SELECT/INSERT/UPDATE/DELETE on student-owned records; profiles are SELECT/UPDATE only. Non-DML privileges such as TRUNCATE, TRIGGER, and REFERENCES are revoked from the application role.
+
+## Local SQL RLS smoke test
+
+After starting the local Supabase stack and applying migrations, run this as a privileged local database user:
+
+```bash
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/rls_student_isolation.sql
+```
+
+The script creates synthetic rows inside one transaction, assumes the `authenticated` role with two distinct JWT subject claims, checks isolation for subjects, sessions, exams, reminders, and note metadata, and rolls every fixture back. It requires a privileged local database connection because it temporarily bypasses foreign-key triggers to avoid creating real Auth users.
