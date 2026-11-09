@@ -76,7 +76,7 @@ export function ProfileSettings({ session, onDisplayNameChange, onSignOut }) {
   const [remindersEnabled, setRemindersEnabled] = useState(true);
   const [quietStart, setQuietStart] = useState("");
   const [quietEnd, setQuietEnd] = useState("");
-  const [browserPermission, setBrowserPermission] = useState(typeof Notification === "undefined" ? "unsupported" : Notification.permission);
+  const [browserPermission, setBrowserPermission] = useState(typeof window === "undefined" || !("Notification" in window) ? "unsupported" : window.Notification.permission);
   const [avatarUrl, setAvatarUrl] = useState("");
   const [avatarBusy, setAvatarBusy] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -362,7 +362,7 @@ export function ProfileSettings({ session, onDisplayNameChange, onSignOut }) {
           </label>
         </div>
         <p className="settings-policy-copy">Quiet hours use your saved time zone ({timezone}). For example, 22:00 to 07:00 postpones reminder delivery until 07:00. Leave both fields empty to disable quiet hours.</p>
-        {browserPermission === "unsupported" ? <p className="settings-policy-copy">Browser notifications are not supported by this browser.</p> : <div className="settings-info-row"><span className="settings-info-icon"><Bell size={16}/></span><div><strong>Browser notifications</strong><p>{browserPermission === "granted" ? "Permission granted on this browser." : browserPermission === "denied" ? "Permission blocked. Change it in your browser site settings." : "Optional alerts while Acadly is open."}</p></div><button type="button" className="button button-ghost settings-row-action" onClick={async () => { const value = await Notification.requestPermission(); setBrowserPermission(value); }} disabled={browserPermission !== "default"}> {browserPermission === "default" ? "Enable" : browserPermission === "granted" ? "Enabled" : "Unavailable"} </button></div>}
+        {browserPermission === "unsupported" ? <p className="settings-policy-copy">Browser notifications are not supported by this browser.</p> : <div className="settings-info-row"><span className="settings-info-icon"><Bell size={16}/></span><div><strong>Browser notifications</strong><p>{browserPermission === "granted" ? "Permission granted on this browser." : browserPermission === "denied" ? "Permission blocked. Change it in your browser site settings." : "Optional alerts while Acadly is open."}</p></div><button type="button" className="button button-ghost settings-row-action" onClick={async () => { const value = await window.Notification.requestPermission(); setBrowserPermission(value); }} disabled={browserPermission !== "default"}> {browserPermission === "default" ? "Enable" : browserPermission === "granted" ? "Enabled" : "Unavailable"} </button></div>}
         <p className="settings-policy-copy">Delivery note: in-app reminders are generated when you sign in and while Acadly is open. Browser alerts are best-effort foreground notifications. Reminders are not guaranteed when the app is closed; background push delivery is not configured.</p>
       </section>
 
