@@ -59,3 +59,6 @@ psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/rls_student_isolation.
 ```
 
 The script creates synthetic rows inside one transaction, assumes the `authenticated` role with two distinct JWT subject claims, checks isolation for subjects, sessions, exams, reminders, and note metadata, and rolls every fixture back. It requires a privileged local database connection because it temporarily bypasses foreign-key triggers to avoid creating real Auth users.
+
+
+The private `student-avatars` bucket uses the same first-folder-segment ownership rule as `student-notes`; signed URLs are generated only after the authenticated user has passed Storage RLS.
