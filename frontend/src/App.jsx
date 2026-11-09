@@ -136,7 +136,7 @@ function Sidebar({ active, setActive, mobileOpen, closeMobile, onSignOut, displa
   );
 }
 
-function Topbar({ onMenu, active, displayName, email, userId, onNavigate }) {
+function Topbar({ onMenu, active, displayName, email, userId, onNavigate, syncToken, notificationToken }) {
   const title = navigation.flatMap((g) => g.items).find((i) => i.id === active)?.label || (active === "settings" ? "Settings" : "Overview");
   return (
     <header className="topbar">
@@ -147,7 +147,7 @@ function Topbar({ onMenu, active, displayName, email, userId, onNavigate }) {
       <div className="topbar-actions">
         <div className="search-box"><Search size={16} /><input aria-label="Search Acadly" placeholder="Search anything..." /><kbd><Command size={11} /> K</kbd></div>
         <span className="topbar-divider" />
-        <NotificationCenter userId={userId} onNavigate={onNavigate} />
+        <NotificationCenter userId={userId} onNavigate={onNavigate} syncToken={syncToken} notificationToken={notificationToken} />
         <IconButton label="Help and support"><CircleHelp size={18} /></IconButton>
         <span className="topbar-profile" title={email}><span className="profile-avatar small">{(displayName || email || "S").charAt(0).toUpperCase()}</span></span>
       </div>
