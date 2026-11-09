@@ -1,6 +1,7 @@
 """Supabase access-token verification for protected Acadly API routes."""
 
 import os
+from typing import Annotated
 from uuid import UUID
 
 import httpx
@@ -21,7 +22,7 @@ class AuthenticatedStudent(BaseModel):
 
 
 async def get_current_student(
-    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)],
 ) -> AuthenticatedStudent:
     """Validate a bearer token with Supabase Auth and return its canonical user ID.
 
