@@ -32,6 +32,9 @@ function TaskDialog({ initial, date, subjects, chapters, onClose, onSave }) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const subjectChapters = chapters.filter((chapter) => chapter.subject_id === subjectId);
+  useEffect(() => {
+    if (chapterId && !subjectChapters.some((chapter) => chapter.id === chapterId)) setChapterId("");
+  }, [subjectId, chapterId, chapters]);
 
   async function submit(event) {
     event.preventDefault();
