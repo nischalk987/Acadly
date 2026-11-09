@@ -86,13 +86,15 @@ export async function syncGeneratedReminders(userId) {
     const timestamp = task.due_at ? new Date(task.due_at) : null;
     if (!timestamp || timestamp <= now || timestamp > horizon) continue;
     const remindAt = new Date(timestamp.getTime() - DEFAULT_LEAD_MINUTES.task * 60000);
-    pending.push(reminderPayload(userId, "task", task.id, "task:" + task.id + ":due", "Study task due", task.title + " is due " + timestamp.toLocaleString([], { timeZone }) + ".", scheduleRespectingQuietHours(Math.max(remindAt, now), prefs, timeZone), "task"));
+    const deliveryTime = remindAt <= now ? now : remindAt;
+    pending.push(reminderPayload(userId, "task", task.id, "task:" + task.id + ":due", "Study task due", task.title + " is due " + timestamp.toLocaleString([], { timeZone }) + ".", scheduleRespectingQuietHours(deliveryTime, prefs, timeZone), "task"));
   }
   for (const exam of examRes.data || []) {
     const timestamp = new Date(exam.starts_at);
     if (timestamp <= now || timestamp > horizon) continue;
     const remindAt = new Date(timestamp.getTime() - DEFAULT_LEAD_MINUTES.exam * 60000);
-    pending.push(reminderPayload(userId, "exam", exam.id, "exam:" + exam.id + ":24h", "Upcoming exam", exam.title + " is scheduled " + timestamp.toLocaleString([], { timeZone }) + ".", scheduleRespectingQuietHours(Math.max(remindAt, now), prefs, timeZone), "exam"));
+    const deliveryTime = remindAt <= now ? now : remindAt;
+    pending.push(reminderPayload(userId, "exam", exam.id, "exam:" + exam.id + ":24h", "Upcoming exam", exam.title + " is scheduled " + timestamp.toLocaleString([], { timeZone }) + ".", scheduleRespectingQuietHours(deliveryTime, prefs, timeZone), "exam"));
   }
   for (const revision of revisionRes.data || []) {
     const timestamp = new Date(revision.scheduled_for);
