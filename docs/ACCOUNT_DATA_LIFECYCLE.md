@@ -18,7 +18,7 @@ Avatars are stored in the private \`student-avatars\` bucket. Uploads are restri
 
 ## Data export
 
-The Settings page exports a JSON file containing the account identity fields available in the current session, profile, preferences, and all application rows for the signed-in student across subjects, chapters, tasks, exams, study sessions, notes, revisions, and reminders. Reads are made using the student's session, so normal RLS policies apply. The export includes note metadata and private object paths; binary attachments are not embedded in the JSON file and must be downloaded separately from the student's private library.
+The Settings page exports a JSON file containing the account identity fields available in the current session, profile, preferences, and all application rows for the signed-in student across subjects, chapters, tasks, exams, study sessions, notes, revisions, and reminders. Reads are made using the student's session, so normal RLS policies apply. The export includes note metadata and private object paths; avatar and note/PDF/image binary files are not embedded in the JSON file and must be downloaded separately while the student is signed in.
 
 The user should store the downloaded export securely because it contains personal study information.
 
