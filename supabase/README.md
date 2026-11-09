@@ -116,3 +116,16 @@ psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/subjects_chapters_rls.
 ```
 
 The script creates two synthetic Auth users and subject/chapter fixtures, verifies cross-student reads and updates are blocked, checks that a chapter cannot be attached to another student's subject, checks that deleting a subject cascades its chapters, and rolls all test data back.
+
+
+## In-app reminders and notification center
+
+The `reminders` table is owner-scoped by RLS. New event-generated reminders use `event_key` plus a unique `(user_id, event_key)` index so repeated foreground syncs cannot create duplicate notifications. `notification_type` distinguishes task, exam, revision, and general reminders. Existing `is_read` and `dismissed_at` fields back the notification center actions.
+
+- `user_preferences.reminders_enabled` controls generated reminders.
+- `quiet_hours_start` and `quiet_hours_end` are local wall-clock times evaluated with `profiles.timezone`. Set both or leave both empty.
+- Task reminders default to one hour before due time, exam reminders to one day before, and revision reminders at the scheduled date.
+- The frontend syncs on sign-in and while the application is visible. Browser notifications are opt-in and require explicit browser permission.
+- **Delivery is not guaranteed when the app is closed.** This release does not configure push subscriptions, a service worker push endpoint, or a scheduled server-side dispatcher.
+- Verify the schema with `supabase/migrations/20261109174500_acadly_reminder_event_deduplication.sql`.
+- The rollback-only unique-key fixture is `supabase/tests/reminder_event_deduplication.sql`. It has been committed but should be run on a local Supabase stack before release.
