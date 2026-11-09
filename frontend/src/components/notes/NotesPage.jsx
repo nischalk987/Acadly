@@ -231,15 +231,6 @@ export function NotesPage({ userId }) {
     URL.revokeObjectURL(url);
   }
 
-  async function renameNote(note) {
-    const title = window.prompt("New file title", note.title);
-    if (title === null || !title.trim()) return;
-    if (title.trim().length > 180) return setToast("Titles must be 180 characters or fewer.");
-    const { data, error } = await supabase.from("notes").update({ title: title.trim() }).eq("id", note.id).select().single();
-    if (error) return setToast(error.message || "Could not rename this file.");
-    setNotes((rows) => rows.map((row) => row.id === data.id ? data : row));
-    setToast("File renamed.");
-  }
 
   const accept = Object.values(ACCEPTED).flat().join(",");
   return (
