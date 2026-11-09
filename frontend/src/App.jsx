@@ -27,7 +27,7 @@ import {
   X,
   ShieldCheck,
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { createElement, useCallback, useEffect, useState } from "react";
 import { AuthScreen } from "./components/auth/AuthScreen.jsx";
 import { ProfileSettings } from "./components/settings/ProfileSettings.jsx";
 import { supabase } from "./lib/supabase.js";
@@ -101,9 +101,9 @@ function Sidebar({ active, setActive, mobileOpen, closeMobile, onSignOut, displa
           {navigation.map((group) => (
             <div className="nav-group" key={group.section}>
               <p className="nav-section-label">{group.section}</p>
-              {group.items.map(({ id, label, icon: Icon, count }) => (
+              {group.items.map(({ id, label, icon: _Icon, count }) => (
                 <button key={id} type="button" className={cx("nav-link", active === id && "nav-link-active")} onClick={() => { setActive(id); closeMobile(); }}>
-                  <Icon size={17} strokeWidth={1.85} />
+                  {createElement(_Icon, { size: 17, strokeWidth: 1.85 })}
                   <span>{label}</span>
                   {count && <span className="nav-count">{count}</span>}
                 </button>
@@ -128,7 +128,7 @@ function Sidebar({ active, setActive, mobileOpen, closeMobile, onSignOut, displa
   );
 }
 
-function Topbar({ onMenu, active }) {
+function Topbar({ onMenu, active, displayName, email }) {
   const title = navigation.flatMap((g) => g.items).find((i) => i.id === active)?.label || (active === "settings" ? "Settings" : "Overview");
   return (
     <header className="topbar">
@@ -146,10 +146,10 @@ function Topbar({ onMenu, active }) {
   );
 }
 
-function MetricCard({ label, value, unit, icon: Icon, tone, note, trend }) {
+function MetricCard({ label, value, unit, icon: _Icon, tone, note, trend }) {
   return (
     <article className="metric-card">
-      <div className="metric-top"><span>{label}</span><span className={cx("metric-icon", tone)}><Icon size={17} /></span></div>
+      <div className="metric-top"><span>{label}</span><span className={cx("metric-icon", tone)}>{createElement(_Icon, { size: 17 })}</span></div>
       <div className="metric-value">{value}<small>{unit}</small></div>
       <div className="metric-foot">{trend && <span className="trend-positive"><TrendingUp size={13} /> {trend}</span>}<span>{note}</span></div>
     </article>
@@ -371,7 +371,7 @@ export default function App() {
     <div className="app-frame">
       <Sidebar active={active} setActive={setActive} mobileOpen={mobileOpen} closeMobile={() => setMobileOpen(false)} onSignOut={signOut} displayName={displayName} email={email} />
       <div className="main-column">
-        <Topbar active={active} onMenu={() => setMobileOpen(true)} />
+        <Topbar active={active} onMenu={() => setMobileOpen(true)} displayName={displayName} email={email} />
         <main id="main-content" className="main-content">
           {active === "overview" ? <Dashboard tasks={tasks} toggleTask={(id) => setTasks((current) => current.map((t) => t.id === id ? { ...t, done: !t.done } : t))} onAddTask={() => setDialogOpen(true)} onNavigate={setActive} /> : active === "settings" ? <ProfileSettings session={session} onDisplayNameChange={setProfileName} onSignOut={signOut} /> : <PlaceholderPage active={active} />}
         </main>
