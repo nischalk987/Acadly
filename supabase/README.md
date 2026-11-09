@@ -105,3 +105,14 @@ psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/profile_settings_secur
 ```
 
 It creates two synthetic Auth users inside a transaction, verifies the signup trigger creates their profile/preferences rows, checks cross-student profile/preferences/avatar visibility and update isolation, and then rolls all fixtures back. The test temporarily bypasses storage triggers only to create a synthetic object row; the access checks run with the normal authenticated role and RLS.
+
+
+## Subjects and chapters ownership test
+
+After `supabase start` and `supabase db reset`, run the rollback-only ownership/cascade regression script as a privileged local database user:
+
+```bash
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/subjects_chapters_rls.sql
+```
+
+The script creates two synthetic Auth users and subject/chapter fixtures, verifies cross-student reads and updates are blocked, checks that a chapter cannot be attached to another student's subject, checks that deleting a subject cascades its chapters, and rolls all test data back.
