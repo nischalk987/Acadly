@@ -107,7 +107,7 @@ export function RevisionsPage({ userId }) {
   }, [userId]);
 
   useEffect(() => { loadData(); }, [loadData]);
-  const today = useMemo(() => new Date(), []);
+  const today = new Date();
   const chapterMap = useMemo(() => Object.fromEntries(chapters.map((c) => [c.id, c])), [chapters]);
   const subjectMap = useMemo(() => Object.fromEntries(subjects.map((s) => [s.id, s])), [subjects]);
   const latestByChapter = useMemo(() => {
@@ -119,19 +119,20 @@ export function RevisionsPage({ userId }) {
     return map;
   }, [revisions]);
 
-  const activeRows = useMemo(() => revisions.filter((row) => !row.completed_at && row.scheduled_for), [revisions]);
-  const dueRows = activeRows.filter((row) => new Date(row.scheduled_for).getTime() < new Date().setHours(23, 59, 59, 999));
-  const overdueRows = dueRows.filter((row) => dateKey(new Date(row.scheduled_for)) < dateKey(new Date()));
+  const activeRows = useMemo(() => revisions.filter((row) => !row.completed_at && !row.skipped_at && row.scheduled_for), [revisions]);
+  const todayKey = dateKey(today);
+  const dueRows = activeRows.filter((row) => dateKey(new Date(row.scheduled_for)) <= todayKey);
+  const overdueRows = dueRows.filter((row) => dateKey(new Date(row.scheduled_for)) < todayKey);
   const completedRows = revisions.filter((row) => row.completed_at);
   const term = query.trim().toLocaleLowerCase();
   const filtered = revisions.filter((row) => {
     const chapter = chapterMap[row.chapter_id];
     const subject = subjectMap[chapter?.subject_id];
     if (subjectFilter !== "all" && subject?.id !== subjectFilter) return false;
-    if (view === "due" && (row.completed_at || !row.scheduled_for || new Date(row.scheduled_for).getTime() >= new Date().setHours(23, 59, 59, 999))) return false;
-    if (view === "upcoming" && (row.completed_at || !row.scheduled_for || new Date(row.scheduled_for).getTime() < new Date().setHours(23, 59, 59, 999))) return false;
+    if (view === "due" && (row.completed_at || row.skipped_at || !row.scheduled_for || dateKey(new Date(row.scheduled_for)) > todayKey)) return false;
+    if (view === "upcoming" && (row.completed_at || row.skipped_at || !row.scheduled_for || dateKey(new Date(row.scheduled_for)) <= todayKey)) return false;
     if (view === "completed" && !row.completed_at) return false;
-    if (view === "all" && false) return false;
+    if (view === "skipped" && !row.skipped_at) return false;
     return !term || [chapter?.title || "", subject?.name || "", row.notes || ""].some((value) => value.toLocaleLowerCase().includes(term));
   }).sort((a, b) => {
     if (a.completed_at && b.completed_at) return new Date(b.completed_at) - new Date(a.completed_at);
@@ -174,7 +175,7 @@ export function RevisionsPage({ userId }) {
 
   async function markNotNeeded(row) {
     setBusyId(row.id);
-    const { data, error } = await supabase.from("revisions").update({ scheduled_for: null, notes: [row.notes, "Marked not needed on " + new Date().toLocaleDateString()].filter(Boolean).join("\n") }).eq("id", row.id).select().single();
+    const { data, error } = await supabase.from("revisions").update({ skipped_at: new Date().toISOString() }).eq("id", row.id).select().single();
     if (error) setToast(error.message || "Could not update revision.");
     else { setRevisions((rows) => rows.map((item) => item.id === data.id ? data : item)); setSkipTarget(null); setToast("Revision marked as not needed."); }
     setBusyId(null);
@@ -202,7 +203,7 @@ export function RevisionsPage({ userId }) {
     setToast("Revision intervals saved.");
   }
 
-  const candidates = chapters.filter((chapter) => chapter.status !== "completed" || !latestByChapter.get(chapter.id)?.completed_at);
+  const candidates = chapters.filter((chapter) => !activeRows.some((row) => row.chapter_id === chapter.id));
   const dueCount = dueRows.length;
   const upcomingCount = activeRows.length - dueCount;
   const completedCount = completedRows.length;
@@ -211,7 +212,7 @@ export function RevisionsPage({ userId }) {
     <section className="revisions-header"><div><p className="eyebrow">BUILD LONG-TERM MEMORY</p><h1>Revision tracker</h1><p>Small, consistent reviews help you retain what you learn.</p></div><div><button type="button" className="button button-ghost" onClick={() => setShowSettings((v) => !v)}><CalendarClock size={14}/> Intervals</button><button type="button" className="button button-primary" onClick={() => setShowSettings("add")}><Plus size={15}/> Schedule revision</button></div></section>
     <section className="revisions-stats"><article><span>Due today / overdue</span><strong>{dueCount}</strong></article><article><span>Upcoming</span><strong>{upcomingCount}</strong></article><article><span>Completed reviews</span><strong>{completedCount}</strong></article></section>
     {showSettings === true && <section className="revision-interval-panel"><form onSubmit={saveIntervalSettings}><label className="field-label">Suggested intervals (days)<input value={intervalDraft} onChange={(event) => setIntervalDraft(event.target.value)} placeholder="1, 3, 7, 14, 30"/></label><p>Enter increasing whole numbers separated by commas. Values are used as days after each completed revision. This is a deterministic schedule, not an AI-generated plan.</p><div><button type="button" className="button button-ghost" onClick={() => setShowSettings(false)}>Cancel</button><button type="submit" className="button button-primary">Save intervals</button></div></form></section>}
-    <section className="revisions-toolbar"><label className="revision-search"><Search size={14}/><input aria-label="Search revisions" placeholder="Search chapters or subjects..." value={query} onChange={(event) => setQuery(event.target.value)}/></label><select aria-label="Filter by subject" value={subjectFilter} onChange={(event) => setSubjectFilter(event.target.value)}><option value="all">All subjects</option>{subjects.map((s) => <option value={s.id} key={s.id}>{s.name}</option>)}</select><div className="revision-view-tabs">{["due","upcoming","completed","all"].map((key) => <button key={key} type="button" className={view === key ? "active" : ""} onClick={() => setView(key)}>{key === "due" ? "Due" : key[0].toUpperCase() + key.slice(1)}</button>)}</div></section>
+    <section className="revisions-toolbar"><label className="revision-search"><Search size={14}/><input aria-label="Search revisions" placeholder="Search chapters or subjects..." value={query} onChange={(event) => setQuery(event.target.value)}/></label><select aria-label="Filter by subject" value={subjectFilter} onChange={(event) => setSubjectFilter(event.target.value)}><option value="all">All subjects</option>{subjects.map((s) => <option value={s.id} key={s.id}>{s.name}</option>)}</select><div className="revision-view-tabs">{["due","upcoming","completed","skipped","all"].map((key) => <button key={key} type="button" className={view === key ? "active" : ""} onClick={() => setView(key)}>{key === "due" ? "Due" : key[0].toUpperCase() + key.slice(1)}</button>)}</div></section>
     {loading ? <LoadingState label="Loading revision history..."/> : loadError ? <ErrorState title="Revisions could not be loaded" description={loadError} onRetry={loadData}/> : filtered.length ? <section className="revision-grid">{filtered.map((row) => <RevisionCard key={row.id} row={row} chapter={chapterMap[row.chapter_id]} subject={subjectMap[chapterMap[row.chapter_id]?.subject_id]} today={new Date()} onComplete={completeRevision} onEdit={(item) => setDialog(item)} onSkip={setSkipTarget}/>)}</section> : <EmptyState icon={CalendarDays} title={view === "due" ? "Nothing due right now" : "No revisions found"} description="Schedule a chapter review to start building your revision history." actionLabel="Schedule revision" onAction={() => setShowSettings("add")}/>}
     <section className="revision-chapter-picker"><header><div><p className="eyebrow">CHAPTER COVERAGE</p><h2>Start revising a chapter</h2></div><span>{candidates.length} chapters</span></header><div className="revision-chapter-list">{candidates.map((chapter) => <article key={chapter.id}><div><strong>{chapter.title}</strong><span>{subjectMap[chapter.subject_id]?.name || "Subject"} · {chapter.status.replace("_"," ")}</span></div><small>{latestByChapter.get(chapter.id)?.completed_at ? "Last reviewed " + formatDate(latestByChapter.get(chapter.id).completed_at) : "No review history"}</small><button type="button" onClick={() => createChapterRevision(chapter)}><Plus size={13}/> Add</button></article>)}</div></section>
     {showSettings === "add" && <div className="dialog-backdrop" role="presentation"><section className="dialog-card revision-dialog" role="dialog" aria-modal="true" aria-labelledby="revision-start-title"><div className="dialog-heading"><div><p className="eyebrow">CHAPTER REVISION</p><h2 id="revision-start-title">Choose a chapter</h2></div><button className="icon-button" type="button" aria-label="Close" onClick={() => setShowSettings(false)}><X size={18}/></button></div><div className="revision-chapter-select-list">{chapters.filter((chapter) => !activeRows.some((row) => row.chapter_id === chapter.id)).map((chapter) => <button type="button" key={chapter.id} onClick={() => { setDialog({ chapter, subject: subjectMap[chapter.subject_id], initial: null }); setShowSettings(false); }}><span><strong>{chapter.title}</strong><small>{subjectMap[chapter.subject_id]?.name || "Subject"}</small></span><ChevronRight size={15}/></button>)}</div></section></div>}
