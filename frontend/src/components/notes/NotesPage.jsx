@@ -83,6 +83,7 @@ export function NotesPage({ userId }) {
   const [subjectFilter, setSubjectFilter] = useState("all");
   const [uploadBusy, setUploadBusy] = useState(false);
   const [uploadError, setUploadError] = useState("");
+  const [lastFailedFile, setLastFailedFile] = useState(null);
   const [editNote, setEditNote] = useState(null);
   const [preview, setPreview] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -151,16 +152,16 @@ export function NotesPage({ userId }) {
       content: null,
     };
     if (targetNote) {
+      const { data, error } = await supabase.from("notes").update(metadata).eq("id", targetNote.id).select().single();
+      if (error) {
+        await supabase.storage.from(BUCKET).remove([path]);
+        throw error;
+      }
       if (targetNote.file_path && isSafePath(targetNote.file_path, userId)) {
         const { error: removeError } = await supabase.storage.from(BUCKET).remove([targetNote.file_path]);
         if (removeError) {
-          await supabase.storage.from(BUCKET).remove([path]);
-          throw new Error("The existing file could not be replaced safely. " + removeError.message);
+          setToast("Replacement saved, but the previous object remains and needs cleanup: " + removeError.message);
         }
-      }
-      const { data, error } = await supabase.from("notes").update(metadata).eq("id", targetNote.id).select().single();
-      if (error) {
-        throw new Error("The previous file was removed but its metadata could not be updated. Please re-upload the file. " + error.message);
       }
       setNotes((rows) => rows.map((row) => row.id === data.id ? data : row));
       setToast("File replaced.");
@@ -179,8 +180,8 @@ export function NotesPage({ userId }) {
     const file = files?.[0];
     if (!file) return;
     setUploadBusy(true); setUploadError("");
-    try { await uploadFile(file, target); }
-    catch (error) { setUploadError(error.message || "Upload failed. Please retry."); }
+    try { await uploadFile(file, target); setLastFailedFile(null); }
+    catch (error) { setLastFailedFile({ file, target }); setUploadError(error.message || "Upload failed. Please retry."); }
     finally { setUploadBusy(false); if (inputRef.current) inputRef.current.value = ""; if (replaceRef.current) replaceRef.current.value = ""; setReplaceTarget(null); }
   }
 
@@ -230,7 +231,7 @@ export function NotesPage({ userId }) {
     URL.revokeObjectURL(url);
   }
 
-  async function renameNote(note, nextTitle) {
+  async function renameNote(note) {
     const title = window.prompt("New file title", note.title);
     if (title === null || !title.trim()) return;
     if (title.trim().length > 180) return setToast("Titles must be 180 characters or fewer.");
@@ -248,12 +249,12 @@ export function NotesPage({ userId }) {
       <section className={cx("notes-dropzone", dragging && "dragging", uploadBusy && "uploading")} onDragOver={(event) => { event.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={(event) => { event.preventDefault(); setDragging(false); handleFiles(event.dataTransfer.files); }}>
         <UploadCloud size={24}/><strong>{uploadBusy ? "Uploading your file..." : dragging ? "Drop file to upload" : "Drag and drop a file here"}</strong><span>PDF, TXT, PNG or JPG · up to 20 MB per file</span>
         {uploadBusy && <div className="notes-upload-status" role="status">Uploading securely… keep this page open until it finishes.</div>}
-        {uploadError && <p className="notes-error" role="alert"><AlertCircle size={14}/>{uploadError}<button type="button" onClick={() => setUploadError("")}>Dismiss</button></p>}
+        {uploadError && <p className="notes-error" role="alert"><AlertCircle size={14}/>{uploadError}{lastFailedFile && <button type="button" disabled={uploadBusy} onClick={() => handleFiles([lastFailedFile.file], lastFailedFile.target)}>Retry</button>}<button type="button" onClick={() => { setUploadError(""); setLastFailedFile(null); }}>Dismiss</button></p>}
         <input ref={inputRef} type="file" accept={accept} hidden disabled={uploadBusy} onChange={(event) => handleFiles(event.target.files)}/>
         <input ref={replaceRef} type="file" accept={accept} hidden disabled={uploadBusy} onChange={(event) => handleFiles(event.target.files, replaceTarget)}/>
       </section>
       <section className="notes-toolbar"><label className="notes-search"><Search size={15}/><input aria-label="Search files" placeholder="Search notes, filenames, subjects..." value={query} onChange={(event) => setQuery(event.target.value)}/></label><select aria-label="Filter by subject" value={subjectFilter} onChange={(event) => setSubjectFilter(event.target.value)}><option value="all">All subjects</option>{subjects.map((subject) => <option key={subject.id} value={subject.id}>{subject.name}</option>)}</select><button type="button" className="button button-ghost" onClick={loadData}><RefreshCw size={14}/> Refresh</button></section>
-      {loading ? <LoadingState label="Loading your private library..."/> : loadError ? <ErrorState title="Your files could not be loaded" description={loadError} onRetry={loadData}/> : filtered.length ? <section className="notes-list">{filtered.map((note) => { const Icon = fileIcon(note.mime_type); return <article className="notes-file-row" key={note.id}><span className="notes-file-icon"><Icon size={18}/></span><div className="notes-file-info"><strong>{note.title}</strong><span>{subjectMap[note.subject_id]?.name || "Unsorted"}{chapterMap[note.chapter_id] ? " · " + chapterMap[note.chapter_id].title : ""}</span><small>{note.file_name || "Text note"} · {formatBytes(Number(note.file_size_bytes) || 0)} · Updated {new Date(note.updated_at).toLocaleDateString()}</small></div><div className="notes-file-actions">{note.file_path && <><button type="button" aria-label={"Preview " + note.title} onClick={() => openPreview(note)}><Eye size={14}/></button><button type="button" aria-label={"Download " + note.title} onClick={() => downloadNote(note)}><Download size={14}/></button><button type="button" aria-label={"Replace " + note.title} onClick={() => { setReplaceTarget(note); replaceRef.current?.click(); }}><RefreshCw size={14}/></button></>}<button type="button" aria-label={"Organize " + note.title} onClick={() => setEditNote(note)}><Pencil size={14}/></button><button type="button" aria-label={"Delete " + note.title} onClick={() => setDeleteTarget(note)}><Trash2 size={14}/></button></div></article>; })}</section> : <EmptyState icon={FolderOpen} title="Your library is empty" description="Upload your first PDF or study file to keep it organized here." actionLabel="Upload a file" onAction={() => inputRef.current?.click()}/>}
+      {loading ? <LoadingState label="Loading your private library..."/> : loadError ? <ErrorState title="Your files could not be loaded" description={loadError} onRetry={loadData}/> : filtered.length ? <section className="notes-list">{filtered.map((note) => { const Icon = fileIcon(note.mime_type); return <article className="notes-file-row" key={note.id}><span className="notes-file-icon"><Icon size={18}/></span><div className="notes-file-info"><strong>{note.title}</strong><span>{subjectMap[note.subject_id]?.name || "Unsorted"}{chapterMap[note.chapter_id] ? " · " + chapterMap[note.chapter_id].title : ""}</span><small>{note.file_name || "Text note"} · {formatBytes(Number(note.file_size_bytes) || 0)} · Updated {new Date(note.updated_at).toLocaleDateString()}</small></div><div className="notes-file-actions">{note.file_path && <><button type="button" aria-label={"Preview " + note.title} onClick={() => openPreview(note)}><Eye size={14}/></button><button type="button" aria-label={"Download " + note.title} onClick={() => downloadNote(note)}><Download size={14}/></button><button type="button" aria-label={"Replace " + note.title} onClick={() => { setReplaceTarget(note); replaceRef.current?.click(); }}><RefreshCw size={14}/></button></>}<button type="button" aria-label={"Rename or organize " + note.title} onClick={() => setEditNote(note)}><Pencil size={14}/></button><button type="button" aria-label={"Delete " + note.title} onClick={() => setDeleteTarget(note)}><Trash2 size={14}/></button></div></article>; })}</section> : <EmptyState icon={FolderOpen} title="Your library is empty" description="Upload your first PDF or study file to keep it organized here." actionLabel="Upload a file" onAction={() => inputRef.current?.click()}/>}
       <p className="notes-privacy-note">Files are stored in a private Supabase Storage bucket. Signed preview links expire after 5 minutes. Per-file size is limited to 20 MB. Storage availability depends on the shared free infrastructure quotas; the 500 MB guideline is a per-student fair-use cap, not a guarantee of infrastructure capacity.</p>
       {editNote && <NoteDialog note={editNote} subjects={subjects} chapters={chapters} onClose={() => setEditNote(null)} onSave={saveMetadata}/>}
       {preview && <PreviewDialog note={preview.note} signedUrl={preview.signedUrl} onClose={() => setPreview(null)}/>}
