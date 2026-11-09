@@ -31,7 +31,7 @@ supabase migration list
 
 If prompted, enter the project's database password in the CLI prompt. Do not paste it into a command, commit it, or share it in chat.
 
-The remote database already contains the two baseline migrations whose timestamps and names are kept in this repository. To apply future changes, create a new migration locally:
+The hosted development database already contains the two baseline migrations whose timestamps and names are kept in this repository. For the first local baseline, use the clean local stack commands above. If you want to reproduce the current hosted schema locally, use `supabase db reset` after checking that the migration files are present; it resets only the local Docker database. For future changes, create a new migration locally:
 
 ```powershell
 supabase migration new add_your_change
