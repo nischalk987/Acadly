@@ -243,6 +243,13 @@ function PlaceholderPage({ active }) {
 }
 
 function QuickAddDialog({ onClose, onSave }) {
+  useEffect(() => {
+    function handleEscape(event) {
+      if (event.key === "Escape") onClose();
+    }
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [onClose]);
   const [title, setTitle] = useState("");
   const [subject, setSubject] = useState("Computer Networks");
   const [time, setTime] = useState("04:00");
