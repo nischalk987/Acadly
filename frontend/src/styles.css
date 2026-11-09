@@ -490,3 +490,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 @media(max-width:800px){.subjects-page{padding:25px 20px 38px}.subjects-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.subjects-page{padding:20px 13px 30px}.subjects-page-heading{align-items:flex-start;flex-direction:column}.subjects-page-heading .button{width:100%;justify-content:center}.subjects-toolbar{align-items:stretch;flex-direction:column}.subjects-toolbar>select{width:100%}.subject-card-top{flex-wrap:wrap}.subject-card-tools{width:100%;justify-content:flex-end}.subject-progress-label{margin-right:auto}.chapter-row{gap:7px}.chapter-status-select{max-width:102px}.chapter-row-actions button{width:24px}.subject-chapters{margin-left:15px;margin-right:12px}}
+
+.subject-progress-overview{display:flex;align-items:center;gap:22px;margin:0 0 18px;padding:14px 16px;border:1px solid #2b3650;border-radius:11px;background:linear-gradient(110deg,#201d3a,#141e2f)}
+.subject-progress-overview>div{display:flex;flex-direction:column;gap:4px}
+.subject-progress-overview>div span{color:#8794ab;font-size:9px}
+.subject-progress-overview>div strong{color:#e4e5f7;font:700 13px Manrope,sans-serif}
+.subject-progress-overview .text-button{display:flex;align-items:center;gap:5px;margin-left:auto;padding:6px 0;border:0;color:#c4b5fd;background:transparent;font-size:9px;cursor:pointer}
+@media(max-width:560px){.subject-progress-overview{gap:12px;padding:12px}.subject-progress-overview>div strong{font-size:11px}}
