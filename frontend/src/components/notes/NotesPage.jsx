@@ -12,6 +12,7 @@ const ACCEPTED = {
   "image/png": [".png"],
   "image/jpeg": [".jpg", ".jpeg"],
 };
+const cx = (...items) => items.filter(Boolean).join(" ");
 const formatBytes = (bytes) => {
   if (bytes < 1024) return bytes + " B";
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
@@ -91,7 +92,6 @@ export function NotesPage({ userId }) {
   const [toast, setToast] = useState("");
   const [dragging, setDragging] = useState(false);
   const [replaceTarget, setReplaceTarget] = useState(null);
-  const [replaceBusy, setReplaceBusy] = useState(false);
   const inputRef = useRef(null);
   const replaceRef = useRef(null);
 
