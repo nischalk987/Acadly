@@ -172,7 +172,7 @@ function StudyChart() {
   );
 }
 
-function Dashboard({ tasks, toggleTask, onAddTask, onNavigate }) {
+function Dashboard({ tasks, toggleTask, onAddTask, onNavigate, subjectProgress }) {
   const completed = tasks.filter((task) => task.done).length;
   return (
     <div className="dashboard-page">
@@ -186,6 +186,12 @@ function Dashboard({ tasks, toggleTask, onAddTask, onNavigate }) {
         <MetricCard label="Tasks completed" value={String(12 + completed)} unit="/ 18" icon={Check} tone="metric-green" note="You're making progress" />
         <MetricCard label="Current study streak" value="7" unit="days" icon={Flame} tone="metric-amber" note="Keep the momentum going" trend="Personal best" />
         <MetricCard label="Focus sessions" value="24" unit="sessions" icon={Target} tone="metric-blue" note="This week so far" />
+      </section>
+
+      <section className="subject-progress-overview" aria-label="Subject progress">
+        <div><span>Learning progress</span><strong>{subjectProgress.subjects.filter((subject) => !subject.is_archived).length} subjects</strong></div>
+        <div><strong>{subjectProgress.chapters.filter((chapter) => chapter.status === "completed").length} / {subjectProgress.chapters.length}</strong><span>Chapters completed</span></div>
+        <button className="text-button" type="button" onClick={() => onNavigate("subjects")}>Manage subjects <ArrowRight size={14} /></button>
       </section>
 
       <section className="dashboard-grid">
@@ -375,7 +381,7 @@ export default function App() {
       <div className="main-column">
         <Topbar active={active} onMenu={() => setMobileOpen(true)} displayName={displayName} email={email} />
         <main id="main-content" className="main-content">
-          {active === "overview" ? <Dashboard tasks={tasks} toggleTask={(id) => setTasks((current) => current.map((t) => t.id === id ? { ...t, done: !t.done } : t))} onAddTask={() => setDialogOpen(true)} onNavigate={setActive} /> : active === "subjects" ? <SubjectsPage userId={session.user.id} onProgressChange={(subjects, chapters) => setSubjectProgress({ subjects, chapters })} /> : active === "settings" ? <ProfileSettings session={session} onDisplayNameChange={setProfileName} onSignOut={signOut} /> : <PlaceholderPage active={active} />}
+          {active === "overview" ? <Dashboard subjectProgress={subjectProgress} tasks={tasks} toggleTask={(id) => setTasks((current) => current.map((t) => t.id === id ? { ...t, done: !t.done } : t))} onAddTask={() => setDialogOpen(true)} onNavigate={setActive} /> : active === "subjects" ? <SubjectsPage userId={session.user.id} onProgressChange={(subjects, chapters) => setSubjectProgress({ subjects, chapters })} /> : active === "settings" ? <ProfileSettings session={session} onDisplayNameChange={setProfileName} onSignOut={signOut} /> : <PlaceholderPage active={active} />}
         </main>
         <footer className="app-footer"><span>© 2026 {BRAND_NAME}</span><span>Made for focused learning <span className="footer-heart">✦</span></span></footer>
       </div>
