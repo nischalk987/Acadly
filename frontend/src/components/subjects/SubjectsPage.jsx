@@ -4,11 +4,8 @@ import {
   BookOpen,
   Check,
   ChevronDown,
-  ChevronRight,
   CircleAlert,
   GripVertical,
-  Layers3,
-  MoreHorizontal,
   Pencil,
   Plus,
   Search,
@@ -249,6 +246,7 @@ export function SubjectsPage({ userId, onProgressChange }) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("active");
   const [expandedIds, setExpandedIds] = useState([]);
+  const [searchFilter, setSearchFilter] = useState("all");
   const [subjectDialog, setSubjectDialog] = useState(null);
   const [chapterDialog, setChapterDialog] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -283,6 +281,8 @@ export function SubjectsPage({ userId, onProgressChange }) {
     return subjects.filter((subject) => {
       if (filter === "active" && subject.is_archived) return false;
       if (filter === "archived" && !subject.is_archived) return false;
+      if (searchFilter === "incomplete" && !chapters.some((chapter) => chapter.subject_id === subject.id && chapter.status !== "completed")) return false;
+      if (searchFilter === "completed" && !chapters.some((chapter) => chapter.subject_id === subject.id && chapter.status === "completed")) return false;
       if (normalized) {
         const relatedChapters = chapters.filter((chapter) => chapter.subject_id === subject.id);
         const matches = subject.name.toLocaleLowerCase().includes(normalized)
@@ -292,7 +292,7 @@ export function SubjectsPage({ userId, onProgressChange }) {
       }
       return true;
     });
-  }, [subjects, chapters, query, filter]);
+  }, [subjects, chapters, query, filter, searchFilter]);
 
   async function saveSubject(values) {
     if (subjectDialog?.id) {
@@ -437,6 +437,11 @@ export function SubjectsPage({ userId, onProgressChange }) {
           <option value="active">Active subjects</option>
           <option value="archived">Archived subjects</option>
           <option value="all">All subjects</option>
+        </select>
+        <select value={searchFilter} onChange={(event) => setSearchFilter(event.target.value)} aria-label="Filter by chapter progress">
+          <option value="all">All progress</option>
+          <option value="incomplete">Has unfinished chapters</option>
+          <option value="completed">Has completed chapters</option>
         </select>
       </section>
 
