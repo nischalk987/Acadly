@@ -30,7 +30,7 @@ Read [docs/PRODUCT_REQUIREMENTS.md](docs/PRODUCT_REQUIREMENTS.md) for the produc
 
 - Frontend: React 18 + Vite 6
 - Backend: Python + FastAPI
-- Authentication, database, and private file storage: planned Supabase integration
+- Authentication, database, and private file storage: Supabase Auth, PostgreSQL and Storage
 - Source control: Git and GitHub
 
 ## Repository structure
@@ -38,6 +38,13 @@ Read [docs/PRODUCT_REQUIREMENTS.md](docs/PRODUCT_REQUIREMENTS.md) for the produc
 ```text
 Acadly/
 ├── docs/PRODUCT_REQUIREMENTS.md
+├── supabase/
+│   ├── migrations/
+│   │   ├── 20261109125128_acadly_initial_schema.sql
+│   │   └── 20261109125409_acadly_security_and_index_fixes.sql
+│   ├── config.toml
+│   ├── seed.sql
+│   └── README.md
 ├── frontend/
 │   ├── src/{App.jsx,main.jsx,styles.css}
 │   ├── .env.example
@@ -55,13 +62,12 @@ Acadly/
 ├── .github/workflows/backend-ci.yml
 ├── .editorconfig
 ├── .gitignore
-├── LICENSE
-└── README.md
+└── LICENSE
 ```
 
 ## Prerequisites
 
-Install Git, Node.js 20 LTS or a newer compatible LTS with npm, Python 3.11+, and PowerShell.
+Install Git, Node.js 20 LTS or a newer compatible LTS with npm, Python 3.11+, PowerShell, Docker Desktop, and the Supabase CLI.
 
 Check versions:
 
@@ -70,6 +76,8 @@ git --version
 node --version
 npm --version
 py --version
+supabase --version
+docker --version
 ```
 
 ## Local setup — Windows PowerShell
@@ -81,20 +89,30 @@ git clone https://github.com/nischalk987/Acadly.git
 cd Acadly
 ```
 
-### 2. Start the frontend
+### 2. Start local Supabase (optional for frontend-only work)
+
+```powershell
+supabase start
+supabase db reset
+supabase status
+```
+
+The local stack runs in Docker. Migrations are applied in timestamp order and the local-only demo seed runs afterward. Read [supabase/README.md](supabase/README.md) before linking or pushing changes to a hosted project.
+
+### 3. Start the frontend
 
 In a PowerShell terminal:
 
 ```powershell
 cd frontend
 Copy-Item .env.example .env
-npm ci
+npm install
 npm run dev
 ```
 
 Open the URL printed by Vite, normally http://127.0.0.1:5173.
 
-### 3. Start the backend
+### 4. Start the backend
 
 Open a second PowerShell terminal from the repository root:
 
@@ -119,7 +137,7 @@ API: http://127.0.0.1:8000
 Interactive API docs: http://127.0.0.1:8000/docs  
 Health check: http://127.0.0.1:8000/api/health
 
-### 4. Run backend tests and lint
+### 5. Run backend tests and lint
 
 From `backend/` with its virtual environment active:
 
@@ -128,7 +146,7 @@ pytest
 ruff check .
 ```
 
-### 5. Build and lint the frontend
+### 6. Build and lint the frontend
 
 From `frontend/`:
 
@@ -137,12 +155,27 @@ npm run lint
 npm run build
 ```
 
+## Supabase migration workflow
+
+Schema changes belong in `supabase/migrations/`. Create each new migration with the Supabase CLI:
+
+```powershell
+supabase migration new describe_your_change
+supabase db reset
+supabase db push --dry-run
+supabase db push
+```
+
+Only run `db push` after reviewing the diff and confirming the linked project is the intended development/staging project. Never run `supabase db reset --linked` on a project containing student data. Never send seed data to a hosted project.
+
+See [supabase/README.md](supabase/README.md) for project linking, deletion behavior, and retention notes.
+
 ## Environment variables and secrets
 
 - Copy each `.env.example` to `.env` in its app directory.
 - Never commit real `.env` files, credentials, Supabase service-role keys, JWT signing secrets, private keys, student records, or uploaded PDFs.
 - `VITE_*` variables are bundled into browser code and must never contain secrets.
-- Supabase variables are placeholders; the starter currently runs without a Supabase project.
+- Use the Supabase publishable key in browser clients with RLS enabled. Keep service-role/secret keys server-side only.
 
 ## Development conventions
 
@@ -157,7 +190,7 @@ npm run build
 
 ## Development status
 
-The repository foundation and starter API/UI are in place. Feature modules, Supabase authentication, database policies, and PDF storage are not implemented yet.
+The repository includes the app shell, starter API, Supabase database baseline and migration workflow. Authentication screens, frontend session integration, feature-specific CRUD screens, and live PDF upload UX remain future work.
 
 ## Contributing
 
