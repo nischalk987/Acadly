@@ -85,3 +85,12 @@ The frontend uses Supabase Auth with the browser-safe publishable key (or legacy
 - Email verification and password recovery redirects use `/auth/callback`, which must be allowed.
 
 Each preview deployment needs an explicitly allow-listed callback origin.
+
+
+## Private profile avatars
+
+The `student-avatars` bucket is private. It accepts PNG, JPEG, and WebP images up to 2 MiB. Avatar object paths use `<auth-user-uuid>/<random-file-name>.<extension>`; four Storage RLS policies restrict select/insert/update/delete to the owning student's folder. The browser stores only the private object path in `profiles.avatar_path` and requests a short-lived signed URL for display.
+
+## Account deletion and export
+
+See [docs/ACCOUNT_DATA_LIFECYCLE.md](../docs/ACCOUNT_DATA_LIFECYCLE.md). The Settings export reads user-owned rows through RLS and writes a JSON file locally. Binary note attachments are not embedded. Self-service account deletion remains disabled until a trusted server-side endpoint can remove private avatar and note objects before deleting the Auth user.
