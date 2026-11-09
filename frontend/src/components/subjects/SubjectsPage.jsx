@@ -210,9 +210,9 @@ function SubjectCard({ subject, chapters, expanded, onToggle, onEdit, onArchive,
         </button>
         <div className="subject-card-tools">
           <span className="subject-progress-label">{percent}% complete</span>
-          <button type="button" aria-label={\`Edit \${subject.name}\`} onClick={() => onEdit(subject)}><Pencil size={14} /></button>
-          <button type="button" aria-label={\`Archive \${subject.name}\`} onClick={() => onArchive(subject)}><Archive size={14} /></button>
-          <button type="button" aria-label={\`Delete \${subject.name}\`} onClick={() => onDelete(subject)}><Trash2 size={14} /></button>
+          <button type="button" aria-label={"Edit " + subject.name} onClick={() => onEdit(subject)}><Pencil size={14} /></button>
+          <button type="button" aria-label={"Archive " + subject.name} onClick={() => onArchive(subject)}><Archive size={14} /></button>
+          <button type="button" aria-label={"Delete " + subject.name} onClick={() => onDelete(subject)}><Trash2 size={14} /></button>
         </div>
       </div>
       <div className="subject-progress-track"><span style={{ width: String(percent) + "%", background: subject.color }} /></div>
