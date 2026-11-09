@@ -60,7 +60,7 @@ function avatarInitial(name, email) {
 
 function SettingsMessage({ kind, children }) {
   if (!children) return null;
-  return <p className={\`settings-message settings-message-\${kind}\`} role={kind === "error" ? "alert" : "status"}>{children}</p>;
+  return <p className={"settings-message settings-message-" + kind} role={kind === "error" ? "alert" : "status"}>{children}</p>;
 }
 
 export function ProfileSettings({ session, onDisplayNameChange, onSignOut }) {
@@ -174,7 +174,7 @@ export function ProfileSettings({ session, onDisplayNameChange, onSignOut }) {
     setError("");
     setNotice("");
     const extension = file.type === "image/jpeg" ? "jpg" : file.type.split("/")[1];
-    const newPath = \`\${userId}/\${crypto.randomUUID()}.\${extension}\`;
+    const newPath = userId + "/" + crypto.randomUUID() + "." + extension;
     try {
       const { error: uploadError } = await supabase.storage
         .from("student-avatars")
@@ -248,7 +248,7 @@ export function ProfileSettings({ session, onDisplayNameChange, onSignOut }) {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = \`acadly-account-export-\${new Date().toISOString().slice(0, 10)}.json\`;
+      link.download = "acadly-account-export-" + new Date().toISOString().slice(0, 10) + ".json";
       document.body.appendChild(link);
       link.click();
       link.remove();
