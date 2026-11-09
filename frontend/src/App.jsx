@@ -329,9 +329,8 @@ export default function App() {
       setSession(data?.session ?? null);
       setAuthLoading(false);
     });
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      setSession(nextSession);
-      setAuthLoading(false);
+    const { data: authListener } = supabase.auth.onAuthStateChange(() => {
+      // Supabase persists and refreshes the session. Initial routing is set by getSession.
     });
     return () => { alive = false; authListener.subscription.unsubscribe(); };
   }, []);
