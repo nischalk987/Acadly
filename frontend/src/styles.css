@@ -572,3 +572,64 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .planner-confirm p{margin:0 0 15px;color:#9aa6ba;font-size:10px;line-height:1.6}
 @media(max-width:900px){.planner-page{padding:25px 21px 38px}.planner-week-column{min-height:180px}.planner-week-items{padding:6px 4px}.planner-week-event{padding:6px 4px}}
 @media(max-width:680px){.planner-page{padding:20px 13px 30px}.planner-header{align-items:flex-start;flex-direction:column}.planner-header .button{width:100%;justify-content:center}.planner-toolbar{padding:9px}.planner-filterbar{flex-direction:column}.planner-filterbar>select{width:100%}.planner-fields-two{grid-template-columns:1fr}.planner-task-row{padding:10px}.planner-row-actions button{width:25px;height:25px}}
+
+
+/* Pomodoro focus room */
+.focus-page{max-width:1180px;margin:0 auto;padding:30px 34px 48px}
+.focus-header{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:23px}
+.focus-header h1{margin:0;color:#f0f2fa;font:750 27px Manrope,sans-serif;letter-spacing:-.055em}
+.focus-header p:last-child{margin:7px 0 0;color:#8b98af;font-size:11px}
+.focus-settings-button{min-height:36px;font-size:10px}
+.focus-layout{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(280px,.8fr);gap:16px;align-items:start}
+.focus-timer-card,.focus-tip-card,.focus-history-card,.focus-settings-panel{border:1px solid #2b3650;border-radius:13px;background:#151e2d}
+.focus-timer-card{padding:20px 22px 17px}
+.focus-mode-tabs{display:flex;justify-content:center;gap:5px;padding:4px;border:1px solid #2e3a50;border-radius:9px;background:#0e1624}
+.focus-mode-tabs button{flex:1;height:32px;border:0;border-radius:6px;color:#8593aa;background:transparent;font-size:9px;cursor:pointer}
+.focus-mode-tabs button.selected{color:#eee9ff;background:#514078}
+.focus-clock-wrap{position:relative;display:grid;place-items:center;width:min(100%,330px);margin:17px auto 7px;aspect-ratio:1}
+.focus-progress{width:100%;height:100%;transform:rotate(-90deg)}
+.focus-progress-track,.focus-progress-value{fill:none;stroke-width:8}
+.focus-progress-track{stroke:#2a354a}
+.focus-progress-value{stroke:#9b7aec;stroke-linecap:round;transition:stroke-dashoffset .25s linear}
+.focus-clock{position:absolute;display:flex;align-items:center;flex-direction:column;gap:7px}
+.focus-clock>strong{color:#f1efff;font:750 clamp(43px,6vw,57px) Manrope,sans-serif;letter-spacing:-.07em;font-variant-numeric:tabular-nums}
+.focus-clock>span{color:#a99bd4;font-size:9px;font-weight:750;letter-spacing:.17em}
+.focus-clock>small{color:#7f8da5;font-size:8px;letter-spacing:.14em}
+.focus-controls{display:flex;justify-content:center;gap:8px;margin:4px 0 17px}
+.focus-controls .button{min-width:125px;min-height:37px;justify-content:center;font-size:10px}
+.focus-context{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding-top:15px;border-top:1px solid #29354a}
+.focus-context .field-label{margin:0}
+.focus-context select{width:100%;height:35px;padding:0 9px;border:1px solid #344158;border-radius:7px;color:#c5cde0;background:#101927;font-size:9px}
+.focus-context select:disabled{opacity:.65}
+.focus-footer-stats{display:flex;justify-content:center;gap:20px;margin-top:15px;color:#8190a7;font-size:8px}
+.focus-footer-stats span{display:flex;align-items:center;gap:5px}
+.focus-side-column{display:flex;flex-direction:column;gap:14px}
+.focus-tip-card{padding:16px}
+.focus-tip-card>div:first-child{display:flex;align-items:center;gap:9px}
+.focus-tip-icon{display:grid;place-items:center;width:28px;height:28px;border-radius:8px;color:#cbbaf8;background:#3a3054}
+.focus-tip-card h2{margin:13px 0 7px;color:#e5e8f2;font:700 16px Manrope,sans-serif;letter-spacing:-.035em}
+.focus-tip-card p{margin:0;color:#98a6bc;font-size:9px;line-height:1.7}
+.focus-notification{display:flex;align-items:center;gap:7px;margin-top:15px;padding:8px 10px;border:1px solid #3b4660;border-radius:7px;color:#cfc2f4;background:#211f38;font-size:9px;cursor:pointer}
+.focus-tip-card>small{display:block;margin-top:7px;color:#73839d;font-size:8px;line-height:1.5}
+.focus-history-card{overflow:hidden}
+.focus-history-card>header{display:flex;align-items:center;justify-content:space-between;padding:14px 15px;border-bottom:1px solid #2b3549}
+.focus-history-card h2{margin:4px 0 0;color:#e4e9f3;font:700 12px Manrope,sans-serif}
+.focus-history-card>header>strong{color:#c9b8fb;font:700 15px Manrope,sans-serif}
+.focus-history-list{max-height:300px;overflow:auto}
+.focus-history-row{display:flex;align-items:center;gap:9px;padding:11px 14px;border-bottom:1px solid #263248}
+.focus-history-row:last-child{border-bottom:0}
+.history-check{display:grid;place-items:center;width:25px;height:25px;border-radius:7px;color:#78d9b3;background:#193d39}
+.focus-history-row>div{display:flex;flex-direction:column;gap:4px}
+.focus-history-row strong{color:#dce4f1;font-size:9px}
+.focus-history-row small{color:#8291a9;font-size:8px}
+.focus-settings-panel{margin-top:16px;padding:17px}
+.focus-settings-panel>header{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px}
+.focus-settings-panel h2{margin:4px 0 0;color:#e4e9f3;font:700 15px Manrope,sans-serif}
+.focus-duration-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.focus-duration-grid label{display:flex;flex-direction:column;gap:6px;padding:12px;border:1px solid #2d3a51;border-radius:9px;background:#101927}
+.focus-duration-grid label>span{color:#e0e7f3;font-size:10px;font-weight:700}
+.focus-duration-grid label>small{color:#7f8da4;font-size:8px}
+.focus-duration-grid input{width:100%;height:34px;padding:0 9px;border:1px solid #394761;border-radius:7px;color:#eeeaff;background:#0c1421;font-size:11px}
+.focus-settings-panel .dialog-actions{margin-top:14px}
+@media(max-width:850px){.focus-page{padding:24px 20px 38px}.focus-layout{grid-template-columns:1fr}.focus-side-column{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){.focus-page{padding:20px 13px 30px}.focus-header{align-items:flex-start;flex-direction:column}.focus-header .button{width:100%;justify-content:center}.focus-side-column{display:flex}.focus-timer-card{padding:14px 12px}.focus-clock-wrap{width:min(100%,285px)}.focus-context{grid-template-columns:1fr}.focus-duration-grid{grid-template-columns:1fr}.focus-footer-stats{gap:10px;flex-wrap:wrap}}
