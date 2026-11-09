@@ -1,9 +1,9 @@
-import { AlertCircle, ArrowRight, Inbox, LoaderCircle } from "lucide-react";
+import { AlertCircle, ArrowRight, Inbox } from "lucide-react";
 
 export function LoadingState({ label = "Loading your workspace", compact = false }) {
   return (
     <div className={compact ? "loading-state loading-state-compact" : "loading-state"} role="status" aria-live="polite">
-      <LoaderCircle className="loading-spinner-icon" size={18} aria-hidden="true" />
+      <span className="loading-spinner" aria-hidden="true" />
       <span>{label}</span>
     </div>
   );
