@@ -82,7 +82,6 @@ export function NotesPage({ userId }) {
   const [query, setQuery] = useState("");
   const [subjectFilter, setSubjectFilter] = useState("all");
   const [uploadBusy, setUploadBusy] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadError, setUploadError] = useState("");
   const [editNote, setEditNote] = useState(null);
   const [preview, setPreview] = useState(null);
@@ -140,7 +139,6 @@ export function NotesPage({ userId }) {
     const path = userId + "/" + crypto.randomUUID() + extOf(originalName);
     const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, file, { contentType: mime, upsert: false });
     if (uploadError) throw uploadError;
-    setUploadProgress(100);
     const metadata = {
       user_id: userId,
       title: targetNote?.title || originalName,
@@ -153,14 +151,16 @@ export function NotesPage({ userId }) {
       content: null,
     };
     if (targetNote) {
-      const { data, error } = await supabase.from("notes").update(metadata).eq("id", targetNote.id).select().single();
-      if (error) {
-        await supabase.storage.from(BUCKET).remove([path]);
-        throw error;
-      }
       if (targetNote.file_path && isSafePath(targetNote.file_path, userId)) {
         const { error: removeError } = await supabase.storage.from(BUCKET).remove([targetNote.file_path]);
-        if (removeError) setToast("Replacement saved. Old file cleanup needs another attempt: " + removeError.message);
+        if (removeError) {
+          await supabase.storage.from(BUCKET).remove([path]);
+          throw new Error("The existing file could not be replaced safely. " + removeError.message);
+        }
+      }
+      const { data, error } = await supabase.from("notes").update(metadata).eq("id", targetNote.id).select().single();
+      if (error) {
+        throw new Error("The previous file was removed but its metadata could not be updated. Please re-upload the file. " + error.message);
       }
       setNotes((rows) => rows.map((row) => row.id === data.id ? data : row));
       setToast("File replaced.");
@@ -178,10 +178,10 @@ export function NotesPage({ userId }) {
   async function handleFiles(files, target = null) {
     const file = files?.[0];
     if (!file) return;
-    setUploadBusy(true); setUploadProgress(0); setUploadError("");
+    setUploadBusy(true); setUploadError("");
     try { await uploadFile(file, target); }
     catch (error) { setUploadError(error.message || "Upload failed. Please retry."); }
-    finally { setUploadBusy(false); setUploadProgress(0); if (inputRef.current) inputRef.current.value = ""; if (replaceRef.current) replaceRef.current.value = ""; setReplaceTarget(null); }
+    finally { setUploadBusy(false); if (inputRef.current) inputRef.current.value = ""; if (replaceRef.current) replaceRef.current.value = ""; setReplaceTarget(null); }
   }
 
   async function saveMetadata(values) {
@@ -195,16 +195,22 @@ export function NotesPage({ userId }) {
   async function deleteNote() {
     if (!deleteTarget) return;
     setDeleteBusy(true);
-    const { error: dbError } = await supabase.from("notes").delete().eq("id", deleteTarget.id);
-    if (dbError) { setToast(dbError.message || "Could not delete metadata."); setDeleteBusy(false); return; }
     if (deleteTarget.file_path && isSafePath(deleteTarget.file_path, userId)) {
       const { error: fileError } = await supabase.storage.from(BUCKET).remove([deleteTarget.file_path]);
       if (fileError) {
-        setToast("Metadata removed, but the private file could not be deleted. Contact support with this error: " + fileError.message);
-      } else setToast("Note and stored file deleted.");
-    } else setToast("Note deleted.");
+        setToast("The stored file could not be deleted, so its metadata was kept. " + fileError.message);
+        setDeleteBusy(false);
+        return;
+      }
+    }
+    const { error: dbError } = await supabase.from("notes").delete().eq("id", deleteTarget.id);
+    if (dbError) {
+      setToast("The file was removed, but its metadata could not be deleted. Refresh to reconcile this entry. " + dbError.message);
+      setDeleteBusy(false);
+      return;
+    }
     setNotes((rows) => rows.filter((row) => row.id !== deleteTarget.id));
-    setDeleteTarget(null); setDeleteBusy(false);
+    setDeleteTarget(null); setDeleteBusy(false); setToast("Note and stored file deleted.");
   }
 
   async function openPreview(note) {
@@ -227,6 +233,7 @@ export function NotesPage({ userId }) {
   async function renameNote(note, nextTitle) {
     const title = window.prompt("New file title", note.title);
     if (title === null || !title.trim()) return;
+    if (title.trim().length > 180) return setToast("Titles must be 180 characters or fewer.");
     const { data, error } = await supabase.from("notes").update({ title: title.trim() }).eq("id", note.id).select().single();
     if (error) return setToast(error.message || "Could not rename this file.");
     setNotes((rows) => rows.map((row) => row.id === data.id ? data : row));
@@ -240,7 +247,7 @@ export function NotesPage({ userId }) {
       <section className="notes-storage-card"><div><span>YOUR STORAGE</span><strong>{formatBytes(usedBytes)} <small>used</small></strong><p>500 MB per-student fair-use guideline · {formatBytes(FAIR_USE_BYTES - usedBytes)} remaining</p></div><div className="notes-storage-bar"><span style={{ width: Math.min(100, usedBytes / FAIR_USE_BYTES * 100) + "%" }}/></div></section>
       <section className={cx("notes-dropzone", dragging && "dragging", uploadBusy && "uploading")} onDragOver={(event) => { event.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={(event) => { event.preventDefault(); setDragging(false); handleFiles(event.dataTransfer.files); }}>
         <UploadCloud size={24}/><strong>{uploadBusy ? "Uploading your file..." : dragging ? "Drop file to upload" : "Drag and drop a file here"}</strong><span>PDF, TXT, PNG or JPG · up to 20 MB per file</span>
-        {uploadBusy && <div className="notes-progress"><span style={{ width: uploadProgress + "%" }}/></div>}
+        {uploadBusy && <div className="notes-upload-status" role="status">Uploading securely… keep this page open until it finishes.</div>}
         {uploadError && <p className="notes-error" role="alert"><AlertCircle size={14}/>{uploadError}<button type="button" onClick={() => setUploadError("")}>Dismiss</button></p>}
         <input ref={inputRef} type="file" accept={accept} hidden disabled={uploadBusy} onChange={(event) => handleFiles(event.target.files)}/>
         <input ref={replaceRef} type="file" accept={accept} hidden disabled={uploadBusy} onChange={(event) => handleFiles(event.target.files, replaceTarget)}/>
