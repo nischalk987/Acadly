@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Archive,
   BookOpen,
@@ -253,7 +253,7 @@ export function SubjectsPage({ userId, onProgressChange }) {
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [toast, setToast] = useState("");
 
-  async function loadData() {
+  const loadData = useCallback(async () => {
     if (!supabase || !userId) return;
     setLoading(true);
     setLoadError("");
@@ -272,9 +272,9 @@ export function SubjectsPage({ userId, onProgressChange }) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [userId, onProgressChange]);
 
-  useEffect(() => { loadData(); }, [userId]);
+  useEffect(() => { loadData(); }, [loadData]);
 
   const filteredSubjects = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase();
