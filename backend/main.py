@@ -1,6 +1,7 @@
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from typing import Annotated
 
 from auth import AuthenticatedStudent, get_current_student
 
@@ -60,7 +61,7 @@ async def health() -> dict[str, str]:
 
 @app.get("/api/auth/me", tags=["auth"])
 async def auth_me(
-    student: AuthenticatedStudent = Depends(get_current_student),
+    student: Annotated[AuthenticatedStudent, Depends(get_current_student)],
 ) -> dict[str, str | None]:
     """Return the authenticated student's canonical identity."""
 
