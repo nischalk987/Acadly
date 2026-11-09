@@ -181,14 +181,16 @@ export function ExamsPage({ userId }) {
     if (reminderMinutes) {
       const remindAt = new Date(new Date(saved.starts_at).getTime() - reminderMinutes * 60000);
       if (remindAt.getTime() > Date.now()) {
-        const { error } = await supabase.from("reminders").insert({
+        const { error } = await supabase.from("reminders").upsert({
           user_id: userId,
           title: "Upcoming exam: " + saved.title,
+          event_key: "exam:" + saved.id + ":lead:" + reminderMinutes,
+          notification_type: "exam",
           body: "Your " + (saved.exam_type || "exam") + " is scheduled for " + formatDate(saved.starts_at) + " at " + formatTime(saved.starts_at) + ".",
           remind_at: remindAt.toISOString(),
           source_type: "exam",
           source_id: saved.id,
-        });
+        }, { onConflict: "user_id,event_key", ignoreDuplicates: true });
         if (error) setToast("Exam saved, but reminder could not be created: " + error.message);
         else setToast("Exam and in-app reminder saved.");
       } else setToast("Exam saved. The selected reminder time has already passed.");
