@@ -2,18 +2,12 @@ import { supabase } from "../../lib/supabase.js";
 
 const MAX_LOOKAHEAD_DAYS = 30;
 const DEFAULT_LEAD_MINUTES = { task: 60, exam: 1440, revision: 0 };
-const pad = (n) => String(n).padStart(2, "0");
-
 function zonedParts(date, timeZone) {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone, year: "numeric", month: "2-digit", day: "2-digit",
     hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23",
   }).formatToParts(date);
   return Object.fromEntries(parts.map((part) => [part.type, part.value]));
-}
-
-function shiftUtcMinutes(date, minutes) {
-  return new Date(date.getTime() + minutes * 60000);
 }
 
 function isQuietTime(date, timeZone, start, end) {
