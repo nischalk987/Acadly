@@ -1,7 +1,8 @@
+from typing import Annotated
+
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import Annotated
 
 from auth import AuthenticatedStudent, get_current_student
 
