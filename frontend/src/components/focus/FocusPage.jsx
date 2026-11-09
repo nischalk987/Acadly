@@ -82,6 +82,7 @@ export function FocusPage({ userId }) {
           setRemaining(left); setRunning(false); setDeadline(null); setPausedRemaining(left);
         }
         sessionStart.current = saved.sessionStartedAt || null;
+        completionEnd.current = saved.completionEnd || (saved.running && saved.deadline && Date.now() >= saved.deadline ? new Date(saved.deadline).toISOString() : null);
       } else {
         setRemaining(nextPrefs.focus_minutes * 60); setMode("focus"); setRunning(false); setDeadline(null); setPausedRemaining(null); sessionStart.current = null; completionEnd.current = null;
       }
