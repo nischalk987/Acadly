@@ -36,6 +36,8 @@ import { FocusPage } from "./components/focus/FocusPage.jsx";
 import { ExamsPage } from "./components/exams/ExamsPage.jsx";
 import { NotesPage } from "./components/notes/NotesPage.jsx";
 import { RevisionsPage } from "./components/revisions/RevisionsPage.jsx";
+import { NotificationCenter } from "./components/ui/NotificationCenter.jsx";
+import { syncGeneratedReminders } from "./lib/reminders/syncGeneratedReminders.js";
 import { supabase } from "./lib/supabase.js";
 import { EmptyState } from "./components/ui/Feedback.jsx";
 
@@ -134,7 +136,7 @@ function Sidebar({ active, setActive, mobileOpen, closeMobile, onSignOut, displa
   );
 }
 
-function Topbar({ onMenu, active, displayName, email }) {
+function Topbar({ onMenu, active, displayName, email, userId, onNavigate }) {
   const title = navigation.flatMap((g) => g.items).find((i) => i.id === active)?.label || (active === "settings" ? "Settings" : "Overview");
   return (
     <header className="topbar">
@@ -145,6 +147,7 @@ function Topbar({ onMenu, active, displayName, email }) {
       <div className="topbar-actions">
         <div className="search-box"><Search size={16} /><input aria-label="Search Acadly" placeholder="Search anything..." /><kbd><Command size={11} /> K</kbd></div>
         <span className="topbar-divider" />
+        <NotificationCenter userId={userId} onNavigate={onNavigate} />
         <IconButton label="Help and support"><CircleHelp size={18} /></IconButton>
         <span className="topbar-profile" title={email}><span className="profile-avatar small">{(displayName || email || "S").charAt(0).toUpperCase()}</span></span>
       </div>
@@ -336,6 +339,7 @@ export default function App() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [tasks, setTasks] = useState(initialTasks);
   const [toast, setToast] = useState("");
+  const [reminderSyncToken, setReminderSyncToken] = useState(0);
   useEffect(() => {
     let alive = true;
     setProfileName("");
@@ -362,6 +366,32 @@ export default function App() {
     return () => { alive = false; authListener.subscription.unsubscribe(); };
   }, []);
   useEffect(() => {
+    if (!session?.user?.id || !supabase) return undefined;
+    let active = true;
+    let syncInFlight = false;
+    const sync = async () => {
+      if (syncInFlight || !active || document.visibilityState !== "visible") return;
+      syncInFlight = true;
+      try {
+        const result = await syncGeneratedReminders(session.user.id);
+        if (active && result.created > 0) setReminderSyncToken((value) => value + 1);
+      } catch (error) {
+        console.warn("Acadly reminder sync failed:", error?.message || error);
+      } finally { syncInFlight = false; }
+    };
+    sync();
+    const interval = window.setInterval(sync, 60000);
+    const onVisibility = () => { if (document.visibilityState === "visible") sync(); };
+    window.addEventListener("focus", sync);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+      window.removeEventListener("focus", sync);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [session?.user?.id]);
+  useEffect(() => {
     const listener = (event) => setActive(event.detail);
     window.addEventListener("acadly:navigate", listener);
     return () => window.removeEventListener("acadly:navigate", listener);
@@ -384,7 +414,7 @@ export default function App() {
     <div className="app-frame">
       <Sidebar active={active} setActive={setActive} mobileOpen={mobileOpen} closeMobile={() => setMobileOpen(false)} onSignOut={signOut} displayName={displayName} email={email} />
       <div className="main-column">
-        <Topbar active={active} onMenu={() => setMobileOpen(true)} displayName={displayName} email={email} />
+        <Topbar active={active} onMenu={() => setMobileOpen(true)} displayName={displayName} email={email} userId={session.user.id} onNavigate={setActive} reminderSyncToken={reminderSyncToken} />
         <main id="main-content" className="main-content">
           {active === "overview" ? <Dashboard subjectProgress={subjectProgress} tasks={tasks} toggleTask={(id) => setTasks((current) => current.map((t) => t.id === id ? { ...t, done: !t.done } : t))} onAddTask={() => setDialogOpen(true)} onNavigate={setActive} /> : active === "subjects" ? <SubjectsPage userId={session.user.id} onProgressChange={(subjects, chapters) => setSubjectProgress({ subjects, chapters })} /> : active === "planner" ? <PlannerPage userId={session.user.id} /> : active === "focus" ? <FocusPage userId={session.user.id} /> : active === "exams" ? <ExamsPage userId={session.user.id} /> : active === "notes" ? <NotesPage userId={session.user.id} /> : active === "revisions" ? <RevisionsPage userId={session.user.id} /> : active === "settings" ? <ProfileSettings session={session} onDisplayNameChange={setProfileName} onSignOut={signOut} /> : <PlaceholderPage active={active} />}
         </main>
