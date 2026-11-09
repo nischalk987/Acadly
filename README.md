@@ -37,25 +37,22 @@ Read [docs/PRODUCT_REQUIREMENTS.md](docs/PRODUCT_REQUIREMENTS.md) for the produc
 
 ```text
 Acadly/
-├── docs/
-│   └── PRODUCT_REQUIREMENTS.md
+├── docs/PRODUCT_REQUIREMENTS.md
 ├── frontend/
-│   ├── src/
-│   │   ├── App.jsx
-│   │   ├── main.jsx
-│   │   └── styles.css
+│   ├── src/{App.jsx,main.jsx,styles.css}
 │   ├── .env.example
 │   ├── eslint.config.js
 │   ├── index.html
 │   ├── package.json
+│   ├── package-lock.json
 │   └── vite.config.js
 ├── backend/
-│   ├── tests/
-│   │   └── test_health.py
+│   ├── tests/test_health.py
 │   ├── .env.example
 │   ├── main.py
 │   ├── pyproject.toml
 │   └── requirements.txt
+├── .github/workflows/backend-ci.yml
 ├── .editorconfig
 ├── .gitignore
 ├── LICENSE
@@ -64,7 +61,7 @@ Acadly/
 
 ## Prerequisites
 
-Install Git, Node.js 20 LTS or newer compatible LTS with npm, Python 3.11 or newer, and PowerShell.
+Install Git, Node.js 20 LTS or a newer compatible LTS with npm, Python 3.11+, and PowerShell.
 
 Check versions:
 
@@ -86,16 +83,16 @@ cd Acadly
 
 ### 2. Start the frontend
 
-Open a PowerShell terminal:
+In a PowerShell terminal:
 
 ```powershell
 cd frontend
 Copy-Item .env.example .env
-npm install
+npm ci
 npm run dev
 ```
 
-Open the URL printed by Vite (by default http://127.0.0.1:5173).
+Open the URL printed by Vite, normally http://127.0.0.1:5173.
 
 ### 3. Start the backend
 
@@ -124,7 +121,7 @@ Health check: http://127.0.0.1:8000/api/health
 
 ### 4. Run backend tests and lint
 
-From `backend/` with the virtual environment active:
+From `backend/` with its virtual environment active:
 
 ```powershell
 pytest
@@ -145,15 +142,15 @@ npm run build
 - Copy each `.env.example` to `.env` in its app directory.
 - Never commit real `.env` files, credentials, Supabase service-role keys, JWT signing secrets, private keys, student records, or uploaded PDFs.
 - `VITE_*` variables are bundled into browser code and must never contain secrets.
-- Supabase variables are placeholders; the starter runs without a Supabase project.
+- Supabase variables are placeholders; the starter currently runs without a Supabase project.
 
 ## Development conventions
 
 - Keep frontend application code in `frontend/src/`.
-- Keep backend routes, schemas, and service logic in separate modules as they are introduced.
+- Keep backend routes, schemas, and service logic in separate modules as introduced.
 - Use descriptive filenames and lowercase `snake_case` for Python modules.
 - Use PascalCase for React component names and `.jsx` component files.
-- Keep API routes under the `/api` prefix.
+- Keep API routes under `/api`.
 - Add/update tests when changing backend behavior.
 - Run frontend lint/build and backend tests/lint before committing.
 - Do not commit generated files, databases, virtual environments, `node_modules`, build output, or user uploads.
