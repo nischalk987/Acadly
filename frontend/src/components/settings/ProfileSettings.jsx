@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
+  Bell,
   AlertTriangle,
   Camera,
   Download,
@@ -72,6 +73,10 @@ export function ProfileSettings({ session, onDisplayNameChange, onSignOut }) {
   const [displayName, setDisplayName] = useState("");
   const [timezone, setTimezone] = useState("Asia/Kolkata");
   const [weekStartsOn, setWeekStartsOn] = useState(1);
+  const [remindersEnabled, setRemindersEnabled] = useState(true);
+  const [quietStart, setQuietStart] = useState("");
+  const [quietEnd, setQuietEnd] = useState("");
+  const [browserPermission, setBrowserPermission] = useState(typeof Notification === "undefined" ? "unsupported" : Notification.permission);
   const [avatarUrl, setAvatarUrl] = useState("");
   const [avatarBusy, setAvatarBusy] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -101,6 +106,9 @@ export function ProfileSettings({ session, onDisplayNameChange, onSignOut }) {
         setDisplayName(nextProfile.display_name || "");
         setTimezone(nextProfile.timezone || "Asia/Kolkata");
         setWeekStartsOn(Number(nextProfile.week_starts_on ?? 1));
+        setRemindersEnabled(preferencesResult.data.reminders_enabled !== false);
+        setQuietStart(preferencesResult.data.quiet_hours_start?.slice(0, 5) || "");
+        setQuietEnd(preferencesResult.data.quiet_hours_end?.slice(0, 5) || "");
 
         if (nextProfile.avatar_path) {
           const { data, error: avatarError } = await supabase.storage
@@ -145,6 +153,13 @@ export function ProfileSettings({ session, onDisplayNameChange, onSignOut }) {
         .single();
       if (profileError) throw profileError;
 
+      const { error: preferenceError } = await supabase.from("user_preferences").update({
+        reminders_enabled: remindersEnabled,
+        quiet_hours_start: quietStart ? quietStart + ":00" : null,
+        quiet_hours_end: quietEnd ? quietEnd + ":00" : null,
+      }).eq("user_id", userId);
+      if (preferenceError) throw preferenceError;
+      setPreferences((current) => ({ ...current, reminders_enabled: remindersEnabled, quiet_hours_start: quietStart ? quietStart + ":00" : null, quiet_hours_end: quietEnd ? quietEnd + ":00" : null }));
       setProfile(savedProfile);
       onDisplayNameChange?.(cleanName);
       setNotice("Your profile and preferences have been saved.");
@@ -329,6 +344,25 @@ export function ProfileSettings({ session, onDisplayNameChange, onSignOut }) {
           </button>
         </div>
       </form>
+
+      <section className="settings-panel">
+        <div className="settings-panel-heading">
+          <span className="settings-section-icon"><Bell size={18} /></span>
+          <div><h2>Study reminders</h2><p>Choose when Acadly should show task, exam, and revision reminders.</p></div>
+        </div>
+        <div className="settings-fields">
+          <label className="settings-toggle-row settings-field-full"><span><strong>Enable in-app reminders</strong><small>Generate reminders for upcoming tasks, exams and revisions.</small></span><input type="checkbox" checked={remindersEnabled} onChange={(event) => setRemindersEnabled(event.target.checked)} /></label>
+          <label className="field-label">Quiet hours start
+            <input type="time" value={quietStart} onChange={(event) => setQuietStart(event.target.value)} disabled={!remindersEnabled} />
+          </label>
+          <label className="field-label">Quiet hours end
+            <input type="time" value={quietEnd} onChange={(event) => setQuietEnd(event.target.value)} disabled={!remindersEnabled} />
+          </label>
+        </div>
+        <p className="settings-policy-copy">Quiet hours use your saved time zone ({timezone}). For example, 22:00 to 07:00 postpones reminder delivery until 07:00. Leave both fields empty to disable quiet hours.</p>
+        {browserPermission === "unsupported" ? <p className="settings-policy-copy">Browser notifications are not supported by this browser.</p> : <div className="settings-info-row"><span className="settings-info-icon"><Bell size={16}/></span><div><strong>Browser notifications</strong><p>{browserPermission === "granted" ? "Permission granted on this browser." : browserPermission === "denied" ? "Permission blocked. Change it in your browser site settings." : "Optional alerts while Acadly is open."}</p></div><button type="button" className="button button-ghost settings-row-action" onClick={async () => { const value = await Notification.requestPermission(); setBrowserPermission(value); }} disabled={browserPermission !== "default"}> {browserPermission === "default" ? "Enable" : browserPermission === "granted" ? "Enabled" : "Unavailable"} </button></div>}
+        <p className="settings-policy-copy">Delivery note: in-app reminders are generated when you sign in and while Acadly is open. Browser alerts are best-effort foreground notifications. Reminders are not guaranteed when the app is closed; background push delivery is not configured.</p>
+      </section>
 
       <section className="settings-panel">
         <div className="settings-panel-heading">
