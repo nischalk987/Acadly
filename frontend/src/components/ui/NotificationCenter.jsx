@@ -21,9 +21,7 @@ export function NotificationCenter({ userId, onNavigate, syncToken = 0, notifica
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [permission, setPermission] = useState(typeof window === "undefined" || !("Notification" in window) ? "unsupported" : window.Notification.permission);
   const announcedRef = useState(() => new Set())[0];
-  const [preferences, setPreferences] = useState({ reminders_enabled: true, quiet_hours_start: "", quiet_hours_end: "" });
   const [open, setOpen] = useState(false);
   const unread = useMemo(() => items.filter((item) => !item.is_read && !item.dismissed_at), [items]);
   const visible = useMemo(() => items.filter((item) => !item.dismissed_at), [items]);
@@ -38,7 +36,6 @@ export function NotificationCenter({ userId, onNavigate, syncToken = 0, notifica
     if (rows.error) setError(rows.error.message || "Could not load notifications.");
     else setItems(rows.data || []);
     if (prefs.error) setError((current) => current || prefs.error.message);
-    else if (prefs.data) setPreferences({ reminders_enabled: prefs.data.reminders_enabled, quiet_hours_start: prefs.data.quiet_hours_start || "", quiet_hours_end: prefs.data.quiet_hours_end || "" });
     setLoading(false);
   }, [userId]);
 
@@ -80,15 +77,6 @@ export function NotificationCenter({ userId, onNavigate, syncToken = 0, notifica
     await update(item.id, { dismissed_at: new Date().toISOString(), is_read: true });
   }
 
-  async function enableBrowserNotifications() {
-    if (typeof Notification === "undefined") { setPermission("unsupported"); return; }
-    const next = await window.Notification.requestPermission();
-    setPermission(next);
-    if (next === "granted") {
-      const latest = visible.filter((item) => !item.is_read && new Date(item.remind_at) <= new Date()).slice(0, 3);
-      latest.forEach((item) => new window.Notification(item.title, { body: item.body || "You have an Acadly reminder.", tag: item.event_key || item.id }));
-    }
-  }
 
   function openNotification(item) {
     if (!item.is_read) update(item.id, { is_read: true });
