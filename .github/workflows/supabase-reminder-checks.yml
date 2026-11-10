@@ -8,6 +8,7 @@ on:
       - "supabase/migrations/**"
       - "supabase/tests/**"
       - "scripts/setup-reminder-dispatcher.ps1"
+      - ".github/workflows/supabase-reminder-checks.yml"
   pull_request:
     branches: [main]
     paths:
@@ -15,21 +16,35 @@ on:
       - "supabase/migrations/**"
       - "supabase/tests/**"
       - "scripts/setup-reminder-dispatcher.ps1"
+      - ".github/workflows/supabase-reminder-checks.yml"
 
 jobs:
   static-checks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
+
       - name: Format Edge Functions
         run: deno fmt --check supabase/functions
+
       - name: Type-check reminder dispatcher
         run: deno check supabase/functions/reminder-dispatcher/index.ts
-      - name: Validate migration SQL syntax
-        uses: miguelmota/sqlfluff-github-action@v3
+
+      - name: Set up Python for SQL lint
+        uses: actions/setup-python@v5
         with:
-          dialect: postgres
-          files: "supabase/migrations/20261109174500_acadly_reminder_event_deduplication.sql supabase/migrations/20261110103000_acadly_web_push_subscriptions.sql"
+          python-version: "3.12"
+
+      - name: Install SQLFluff
+        run: python -m pip install --disable-pip-version-check sqlfluff==3.4.2
+
+      - name: Validate migration SQL
+        run: >-
+          sqlfluff lint --dialect postgres
+          supabase/migrations/20261109174500_acadly_reminder_event_deduplication.sql
+          supabase/migrations/20261110103000_acadly_web_push_subscriptions.sql
+          supabase/migrations/20261110120000_enable_acadly_reminder_cron.sql
