@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint .",
-    "deploy": "wrangler deploy"
+    "deploy": "npx --yes wrangler@4.158.0 deploy"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.0",
