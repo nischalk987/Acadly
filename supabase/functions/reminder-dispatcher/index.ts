@@ -48,6 +48,13 @@ Deno.serve(async (req: Request) => {
   if (!due?.length) return json({ processed: 0 });
 
   const ids = due.map((item) => item.id);
+  const vapidPublic = Deno.env.get("WEB_PUSH_VAPID_PUBLIC_KEY");
+  const vapidPrivate = Deno.env.get("WEB_PUSH_VAPID_PRIVATE_KEY");
+  const vapidSubject = Deno.env.get("WEB_PUSH_VAPID_SUBJECT");
+  if (!vapidPublic || !vapidPrivate || !vapidSubject) {
+    return json({ processed: 0, pending: due.length, push: "vapid-keys-required" }, 202);
+  }
+
   const { data: claimed, error: claimError } = await admin
     .from("reminders")
     .update({ dispatched_at: now })
@@ -67,11 +74,7 @@ Deno.serve(async (req: Request) => {
   if (subError) return json({ processed: claimed?.length || 0, push: "not-configured" });
   // Push sending is delegated to the VAPID sender once its keys are configured.
   // Do not claim browser push was sent when the project has no VAPID credentials.
-  const vapidPublic = Deno.env.get("WEB_PUSH_VAPID_PUBLIC_KEY");
-  const vapidPrivate = Deno.env.get("WEB_PUSH_VAPID_PRIVATE_KEY");
-  const vapidSubject = Deno.env.get("WEB_PUSH_VAPID_SUBJECT");
-
-  if (vapidPublic && vapidPrivate && vapidSubject && subscriptions?.length) {
+  if (subscriptions?.length) {
     const { error: pushError } = await admin.from("push_delivery_jobs").insert(
       claimed!.flatMap((reminder) => (subscriptions || [])
         .filter((subscription) => subscription.user_id === reminder.user_id)
@@ -89,6 +92,7 @@ Deno.serve(async (req: Request) => {
 
   return json({
     processed: claimed?.length || 0,
-    push: vapidPublic && vapidPrivate && vapidSubject ? "queued-for-web-push-worker" : "vapid-keys-required",
+    pushJobsQueued: subscriptions?.length || 0,
+    push: "queued-for-web-push-worker",
   });
 });
