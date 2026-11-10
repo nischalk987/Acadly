@@ -1,0 +1,35 @@
+name: Supabase reminder checks
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "supabase/functions/**"
+      - "supabase/migrations/**"
+      - "supabase/tests/**"
+      - "scripts/setup-reminder-dispatcher.ps1"
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/functions/**"
+      - "supabase/migrations/**"
+      - "supabase/tests/**"
+      - "scripts/setup-reminder-dispatcher.ps1"
+
+jobs:
+  static-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Format Edge Functions
+        run: deno fmt --check supabase/functions
+      - name: Type-check reminder dispatcher
+        run: deno check supabase/functions/reminder-dispatcher/index.ts
+      - name: Validate migration SQL syntax
+        uses: miguelmota/sqlfluff-github-action@v3
+        with:
+          dialect: postgres
+          files: "supabase/migrations/20261109174500_acadly_reminder_event_deduplication.sql supabase/migrations/20261110103000_acadly_web_push_subscriptions.sql"
