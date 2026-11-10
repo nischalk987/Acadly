@@ -57,15 +57,11 @@ after setting it. Do not put the VAPID private key in frontend configuration.
 
 ## 4. Store the cron invocation values in Supabase Vault
 
-In Supabase Dashboard → SQL Editor, run the following after replacing the
-placeholder with the exact cron secret printed by the setup script:
+The project URL and publishable API key have already been stored in Vault as
+`acadly_project_url` and `acadly_publishable_key`. After running the setup
+script, add the printed cron secret in Supabase Dashboard → SQL Editor:
 
 ```sql
-select vault.create_secret(
-  'https://pcvkmsbtlszsuvuuvpnq.supabase.co',
-  'acadly_project_url'
-);
-
 select vault.create_secret(
   '<PASTE_THE_GENERATED_CRON_SECRET>',
   'acadly_cron_secret'
@@ -95,6 +91,7 @@ select cron.schedule(
         || '/functions/v1/reminder-dispatcher',
       headers := jsonb_build_object(
         'Content-Type', 'application/json',
+        'apikey', (select decrypted_secret from vault.decrypted_secrets where name = 'acadly_publishable_key'),
         'x-acadly-cron-secret', (select decrypted_secret from vault.decrypted_secrets where name = 'acadly_cron_secret')
       ),
       body := '{}'::jsonb,
