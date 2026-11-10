@@ -47,7 +47,6 @@ Deno.serve(async (req: Request) => {
   if (fetchError) return json({ error: "Could not load due reminders" }, 500);
   if (!due?.length) return json({ processed: 0 });
 
-  const ids = due.map((item) => item.id);
   const vapidPublic = Deno.env.get("WEB_PUSH_VAPID_PUBLIC_KEY");
   const vapidPrivate = Deno.env.get("WEB_PUSH_VAPID_PRIVATE_KEY");
   const vapidSubject = Deno.env.get("WEB_PUSH_VAPID_SUBJECT");
@@ -55,44 +54,45 @@ Deno.serve(async (req: Request) => {
     return json({ processed: 0, pending: due.length, push: "vapid-keys-required" }, 202);
   }
 
+  const users = [...new Set(due.map((item) => item.user_id))];
+  const { data: subscriptions, error: subError } = await admin
+    .from("web_push_subscriptions")
+    .select("id,user_id")
+    .in("user_id", users)
+    .eq("is_active", true);
+  if (subError) return json({ error: "Could not load push subscriptions" }, 500);
+
+  const jobs = due.flatMap((reminder) => (subscriptions || [])
+    .filter((subscription) => subscription.user_id === reminder.user_id)
+    .map((subscription) => ({
+      reminder_id: reminder.id,
+      subscription_id: subscription.id,
+      user_id: reminder.user_id,
+      payload: { title: reminder.title, body: reminder.body, url: "/" },
+      status: "pending",
+    })));
+
+  if (jobs.length) {
+    const { error: queueError } = await admin.from("push_delivery_jobs").upsert(jobs, {
+      onConflict: "reminder_id,subscription_id",
+      ignoreDuplicates: true,
+    });
+    if (queueError) return json({ error: "Could not queue push deliveries" }, 500);
+  }
+
+  // Mark the reminder dispatched only after queue persistence succeeds.
+  const ids = due.map((item) => item.id);
   const { data: claimed, error: claimError } = await admin
     .from("reminders")
     .update({ dispatched_at: now })
     .in("id", ids)
     .is("dispatched_at", null)
-    .select("id,user_id,title,body,remind_at,event_key");
-
-  if (claimError) return json({ error: "Could not claim due reminders" }, 500);
-
-  const deliveredUsers = new Set((claimed || []).map((item) => item.user_id));
-  const { data: subscriptions, error: subError } = await admin
-    .from("web_push_subscriptions")
-    .select("id,user_id,endpoint,p256dh,auth")
-    .in("user_id", [...deliveredUsers])
-    .eq("is_active", true);
-
-  if (subError) return json({ processed: claimed?.length || 0, push: "not-configured" });
-  // Push sending is delegated to the VAPID sender once its keys are configured.
-  // Do not claim browser push was sent when the project has no VAPID credentials.
-  if (subscriptions?.length) {
-    const { error: pushError } = await admin.from("push_delivery_jobs").insert(
-      claimed!.flatMap((reminder) => (subscriptions || [])
-        .filter((subscription) => subscription.user_id === reminder.user_id)
-        .map((subscription) => ({
-          reminder_id: reminder.id,
-          subscription_id: subscription.id,
-          user_id: reminder.user_id,
-          payload: { title: reminder.title, body: reminder.body, url: "/" },
-          status: "pending",
-        }))),
-      { defaultToNull: false },
-    );
-    if (pushError) return json({ processed: claimed?.length || 0, push: "queue-error" }, 500);
-  }
+    .select("id,user_id");
+  if (claimError) return json({ error: "Could not mark reminders dispatched" }, 500);
 
   return json({
     processed: claimed?.length || 0,
-    pushJobsQueued: subscriptions?.length || 0,
+    pushJobsQueued: jobs.length,
     push: "queued-for-web-push-worker",
   });
 });
