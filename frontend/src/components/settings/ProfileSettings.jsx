@@ -15,6 +15,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { supabase } from "../../lib/supabase.js";
+import { disableWebPush, enableWebPush, webPushSupport } from "../../lib/reminders/webPush.js";
 
 const WEEK_DAYS = [
   { value: 0, label: "Sunday" },
@@ -77,6 +78,10 @@ export function ProfileSettings({ session, onDisplayNameChange, onSignOut }) {
   const [quietStart, setQuietStart] = useState("");
   const [quietEnd, setQuietEnd] = useState("");
   const [browserPermission, setBrowserPermission] = useState(typeof window === "undefined" || !("Notification" in window) ? "unsupported" : window.Notification.permission);
+  const [pushBusy, setPushBusy] = useState(false);
+  const [pushNotice, setPushNotice] = useState("");
+  const [pushError, setPushError] = useState("");
+  const [pushConfigured] = useState(Boolean(import.meta.env.VITE_WEB_PUSH_VAPID_PUBLIC_KEY));
   const [avatarUrl, setAvatarUrl] = useState("");
   const [avatarBusy, setAvatarBusy] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -362,8 +367,10 @@ export function ProfileSettings({ session, onDisplayNameChange, onSignOut }) {
           </label>
         </div>
         <p className="settings-policy-copy">Quiet hours use your saved time zone ({timezone}). For example, 22:00 to 07:00 postpones reminder delivery until 07:00. Leave both fields empty to disable quiet hours. The start and end must be set together.</p>
-        {browserPermission === "unsupported" ? <p className="settings-policy-copy">Browser notifications are not supported by this browser.</p> : <div className="settings-info-row"><span className="settings-info-icon"><Bell size={16}/></span><div><strong>Browser notifications</strong><p>{browserPermission === "granted" ? "Permission granted on this browser." : browserPermission === "denied" ? "Permission blocked. Change it in your browser site settings." : "Optional alerts while Acadly is open."}</p></div><button type="button" className="button button-ghost settings-row-action" onClick={async () => { const value = await window.Notification.requestPermission(); setBrowserPermission(value); }} disabled={browserPermission !== "default" || !remindersEnabled}> {browserPermission === "default" ? "Enable" : browserPermission === "granted" ? "Enabled" : "Unavailable"} </button></div>}
-        <p className="settings-policy-copy">Delivery note: in-app reminders are generated when you sign in and while Acadly is open. Browser alerts are best-effort foreground notifications. Reminders are not guaranteed when the app is closed; background push delivery is not configured.</p>
+        {!webPushSupport() ? <p className="settings-policy-copy">This browser does not support Web Push notifications.</p> : <div className="settings-info-row"><span className="settings-info-icon"><Bell size={16}/></span><div><strong>Background push notifications</strong><p>{pushConfigured ? (browserPermission === "granted" ? "Browser permission is granted. Enable or disable this device subscription below." : "Enable this device to receive push while Acadly is closed.") : "The deployment is missing its public VAPID key. In-app reminders still work."}</p></div><button type="button" className="button button-ghost settings-row-action" disabled={!pushConfigured || pushBusy || !remindersEnabled || browserPermission === "denied"} onClick={async () => { setPushBusy(true); setPushError(""); setPushNotice(""); try { await enableWebPush(userId); setBrowserPermission(window.Notification.permission); setPushNotice("This browser is subscribed to Acadly push notifications."); } catch (err) { setPushError(err.message || "Could not enable push notifications."); } finally { setPushBusy(false); } }}>{pushBusy ? "Working..." : "Enable on this device"}</button></div>}
+        <div className="settings-info-row"><span className="settings-info-icon"><Bell size={16}/></span><div><strong>Disable this device</strong><p>Remove this browser's push subscription. Other devices remain unchanged.</p></div><button type="button" className="button button-ghost settings-row-action" disabled={pushBusy} onClick={async () => { setPushBusy(true); setPushError(""); setPushNotice(""); try { await disableWebPush(userId); setPushNotice("Push notifications disabled for this browser."); } catch (err) { setPushError(err.message || "Could not disable push notifications."); } finally { setPushBusy(false); } }}>Disable</button></div>
+        <SettingsMessage kind="error">{pushError}</SettingsMessage><SettingsMessage kind="success">{pushNotice}</SettingsMessage>
+        <p className="settings-policy-copy">Browser permission is requested only when you choose Enable. Push delivery while the app is closed also requires the server-side cron schedule and VAPID sender secrets to be configured by the administrator. Delivery is best-effort and depends on the browser and operating system.</p>
       </section>
 
       <section className="settings-panel">
