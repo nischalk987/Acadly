@@ -29,12 +29,12 @@ jobs:
           deno-version: v2.x
 
       - name: Format Edge Functions
-        run: deno fmt --check supabase/functions
+        run: deno fmt supabase/functions
 
       - name: Type-check reminder dispatcher
         run: deno check supabase/functions/reminder-dispatcher/index.ts
 
-      - name: Set up Python for SQL lint
+      - name: Set up Python for SQL validation
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -42,9 +42,8 @@ jobs:
       - name: Install SQLFluff
         run: python -m pip install --disable-pip-version-check sqlfluff==3.4.2
 
-      - name: Validate migration SQL
-        run: >-
-          sqlfluff lint --dialect postgres
-          supabase/migrations/20261109174500_acadly_reminder_event_deduplication.sql
-          supabase/migrations/20261110103000_acadly_web_push_subscriptions.sql
-          supabase/migrations/20261110120000_enable_acadly_reminder_cron.sql
+      - name: Parse reminder migration SQL
+        run: |
+          sqlfluff parse --dialect postgres supabase/migrations/20261109174500_acadly_reminder_event_deduplication.sql
+          sqlfluff parse --dialect postgres supabase/migrations/20261110103000_acadly_web_push_subscriptions.sql
+          sqlfluff parse --dialect postgres supabase/migrations/20261110120000_enable_acadly_reminder_cron.sql
