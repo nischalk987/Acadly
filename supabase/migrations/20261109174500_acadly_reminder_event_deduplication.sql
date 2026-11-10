@@ -14,3 +14,6 @@ CREATE INDEX IF NOT EXISTS reminders_user_active_time_idx
 ALTER TABLE public.reminders
   ADD CONSTRAINT reminders_notification_type_check
   CHECK (notification_type IN ('reminder','task','exam','revision','system'));
+
+ALTER TABLE public.reminders ADD COLUMN IF NOT EXISTS dispatched_at timestamptz;
+CREATE INDEX IF NOT EXISTS reminders_due_dispatch_idx ON public.reminders (remind_at) WHERE dismissed_at IS NULL AND dispatched_at IS NULL;
