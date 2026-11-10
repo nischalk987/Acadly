@@ -57,13 +57,20 @@ Deno.serve(async (req: Request) => {
   const users = [...new Set(due.map((item) => item.user_id))];
   const { data: subscriptions, error: subError } = await admin
     .from("web_push_subscriptions")
-    .select("id,user_id")
+    .select("id,user_id,endpoint,p256dh,auth")
     .in("user_id", users)
     .eq("is_active", true);
   if (subError) return json({ error: "Could not load push subscriptions" }, 500);
 
-  const jobs = due.flatMap((reminder) => (subscriptions || [])
-    .filter((subscription) => subscription.user_id === reminder.user_id)
+  const activeSubscriptions = subscriptions || [];
+  const subscriptionsByUser = new Map<string, typeof activeSubscriptions>();
+  for (const subscription of activeSubscriptions) {
+    const current = subscriptionsByUser.get(subscription.user_id) || [];
+    current.push(subscription);
+    subscriptionsByUser.set(subscription.user_id, current);
+  }
+
+  const jobs = due.flatMap((reminder) => (subscriptionsByUser.get(reminder.user_id) || [])
     .map((subscription) => ({
       reminder_id: reminder.id,
       subscription_id: subscription.id,
@@ -80,12 +87,18 @@ Deno.serve(async (req: Request) => {
     if (queueError) return json({ error: "Could not queue push deliveries" }, 500);
   }
 
-  // Mark the reminder dispatched only after queue persistence succeeds.
-  const ids = due.map((item) => item.id);
+  const deliverableIds = due
+    .filter((item) => (subscriptionsByUser.get(item.user_id) || []).length > 0)
+    .map((item) => item.id);
+  if (!deliverableIds.length) {
+    return json({ processed: 0, pending: due.length, push: "no-active-subscriptions" }, 202);
+  }
+
+  // Queue persistence must succeed before the reminder can be marked dispatched.
   const { data: claimed, error: claimError } = await admin
     .from("reminders")
     .update({ dispatched_at: now })
-    .in("id", ids)
+    .in("id", deliverableIds)
     .is("dispatched_at", null)
     .select("id,user_id");
   if (claimError) return json({ error: "Could not mark reminders dispatched" }, 500);
@@ -94,5 +107,6 @@ Deno.serve(async (req: Request) => {
     processed: claimed?.length || 0,
     pushJobsQueued: jobs.length,
     push: "queued-for-web-push-worker",
+    pendingWithoutSubscriptions: due.length - deliverableIds.length,
   });
 });
