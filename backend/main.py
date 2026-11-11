@@ -84,7 +84,7 @@ def create_app() -> FastAPI:
         """Compatibility liveness endpoint."""
         return {"status": "ok"}
 
-    @application.get("/api/ready", tags=["meta"])
+    @application.get("/api/ready", tags=["meta"], response_model=None)
     async def legacy_readiness() -> JSONResponse | dict[str, str]:
         current = get_settings()
         if not current.supabase_url or not current.supabase_publishable_key:
