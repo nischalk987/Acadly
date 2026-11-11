@@ -104,6 +104,7 @@ export function AnalyticsPage({ userId }) {
         ? { start: customStart, end: customEnd }
         : getRangeForPreset(rangePreset === "custom" ? "7d" : rangePreset, today);
       const bounds = getUtcRangeForLocalDates(selectedRange.start, selectedRange.end, timeZone);
+      const streakBounds = getUtcRangeForLocalDates(getRangeForPreset("90d", today).start, today, timeZone);
 
       const [sessionResult, taskResult, subjectResult, chapterResult] = await Promise.all([
         supabase.from("study_sessions")
@@ -111,8 +112,8 @@ export function AnalyticsPage({ userId }) {
           .eq("session_type", "focus")
           .eq("completed", true)
           .gt("duration_seconds", 0)
-          .gte("started_at", bounds.startIso)
-          .lt("started_at", bounds.endExclusiveIso)
+          .gte("started_at", streakBounds.startIso)
+          .lt("started_at", streakBounds.endExclusiveIso)
           .order("started_at", { ascending: true }),
         supabase.from("study_tasks")
           .select("id,status,completed_at,subject_id")
