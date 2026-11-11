@@ -65,6 +65,7 @@ export function AnalyticsPage({ userId }) {
   const [customStart, setCustomStart] = useState("");
   const [customEnd, setCustomEnd] = useState("");
   const [sessions, setSessions] = useState([]);
+  const [streakSessions, setStreakSessions] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [chapters, setChapters] = useState([]);
@@ -106,9 +107,17 @@ export function AnalyticsPage({ userId }) {
       const bounds = getUtcRangeForLocalDates(selectedRange.start, selectedRange.end, timeZone);
       const streakBounds = getUtcRangeForLocalDates(getRangeForPreset("90d", today).start, today, timeZone);
 
-      const [sessionResult, taskResult, subjectResult, chapterResult] = await Promise.all([
+      const [sessionResult, streakSessionResult, taskResult, subjectResult, chapterResult] = await Promise.all([
         supabase.from("study_sessions")
           .select("id,session_type,started_at,duration_seconds,completed,subject_id")
+          .eq("session_type", "focus")
+          .eq("completed", true)
+          .gt("duration_seconds", 0)
+          .gte("started_at", bounds.startIso)
+          .lt("started_at", bounds.endExclusiveIso)
+          .order("started_at", { ascending: true }),
+        supabase.from("study_sessions")
+          .select("id,session_type,started_at,duration_seconds,completed")
           .eq("session_type", "focus")
           .eq("completed", true)
           .gt("duration_seconds", 0)
@@ -124,10 +133,11 @@ export function AnalyticsPage({ userId }) {
         supabase.from("subjects").select("id,name,color,is_archived").eq("is_archived", false).order("position"),
         supabase.from("chapters").select("id,subject_id,status").order("position"),
       ]);
-      for (const result of [sessionResult, taskResult, subjectResult, chapterResult]) {
+      for (const result of [sessionResult, streakSessionResult, taskResult, subjectResult, chapterResult]) {
         if (result.error) throw result.error;
       }
       setSessions(sessionResult.data || []);
+      setStreakSessions(streakSessionResult.data || []);
       setTasks(taskResult.data || []);
       setSubjects(subjectResult.data || []);
       setChapters(chapterResult.data || []);
@@ -152,11 +162,11 @@ export function AnalyticsPage({ userId }) {
   }, [userId, loadData]);
 
   const analytics = useMemo(() => buildStudyAnalytics({
-    sessions, tasks, subjects, chapters, timeZone: profileTimeZone,
+    sessions, streakSessions, tasks, subjects, chapters, timeZone: profileTimeZone,
     start: range.start, end: range.end, todayKey,
-  }), [sessions, tasks, subjects, chapters, profileTimeZone, range.start, range.end, todayKey]);
+  }), [sessions, streakSessions, tasks, subjects, chapters, profileTimeZone, range.start, range.end, todayKey]);
 
-  const customRangeInvalid = rangePreset === "custom" && (!customStart || !customEnd || customStart > customEnd);
+  const customRangeInvalid = rangePreset === "custom" && (!customStart || !customEnd || customStart > customEnd || customEnd > todayKey);
 
   if (loading) return <div className="analytics-page"><LoadingState label="Loading your study analytics..." /></div>;
   if (error && !sessions.length && !tasks.length && !subjects.length) return <div className="analytics-page"><ErrorState title="Analytics could not be loaded" description={error} actionLabel="Try again" onAction={() => loadData()} /></div>;
