@@ -61,8 +61,10 @@ describe("study analytics", () => {
       id: String(index), session_type: "focus", completed: true, duration_seconds: 60,
       started_at: date + "T04:00:00Z",
     }));
-    expect(buildStudyAnalytics({ ...base, sessions }).currentStreak).toBe(3);
-    expect(buildStudyAnalytics({ ...base, sessions: [sessions[0], sessions[2]] }).currentStreak).toBe(0);
+    expect(buildStudyAnalytics({ ...base, sessions, streakSessions: sessions }).currentStreak).toBe(3);
+    expect(buildStudyAnalytics({ ...base, sessions: [sessions[0], sessions[2]], streakSessions: [sessions[0], sessions[2]] }).currentStreak).toBe(0);
+    const selectedRangeOnly = buildStudyAnalytics({ ...base, start: "2026-11-10", end: "2026-11-11", sessions: [sessions[2]], streakSessions: sessions });
+    expect(selectedRangeOnly.currentStreak).toBe(3);
   });
 
   it("computes the best streak in the selected period and chapter summary", () => {
@@ -71,7 +73,7 @@ describe("study analytics", () => {
       started_at: date + "T04:00:00Z",
     }));
     const result = buildStudyAnalytics({ ...base, sessions });
-    expect(result.bestStreak).toBe(3);
+    expect(result.bestStreak).toBe(2);
     expect(result.completedChapters).toBe(1);
     expect(result.totalChapters).toBe(2);
   });
