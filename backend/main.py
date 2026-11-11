@@ -1,5 +1,7 @@
 """Acadly FastAPI application entry point."""
-from fastapi import FastAPI
+from typing import Annotated
+
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
@@ -7,6 +9,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 
 from api.errors import install_exception_handlers
+from auth import AuthenticatedStudent, get_current_student
 from api.v1.router import router as v1_router
 from core.config import get_settings
 
@@ -78,6 +81,13 @@ def create_app() -> FastAPI:
     @application.get("/", tags=["meta"])
     async def root() -> dict[str, str]:
         return {"name": "Acadly API", "version": application.version}
+
+    @application.get("/api/auth/me", tags=["auth"], include_in_schema=False)
+    async def legacy_auth_me(
+        student: Annotated[AuthenticatedStudent, Depends(get_current_student)],
+    ) -> dict[str, str | None]:
+        """Backward-compatible identity endpoint for existing clients."""
+        return {"id": str(student.id), "email": student.email}
 
     @application.get("/api/health", tags=["meta"])
     async def legacy_health() -> dict[str, str]:
