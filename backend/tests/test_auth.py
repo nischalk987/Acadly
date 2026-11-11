@@ -45,7 +45,7 @@ def test_auth_me_validates_token_with_supabase(monkeypatch) -> None:
     response = client.get("/api/auth/me", headers={"Authorization": "Bearer signed-access-token"})
 
     assert response.status_code == 200
-    assert response.json() == {"data": {"id": user_id, "email": "student@example.com"}}
+    assert response.json() == {"id": user_id, "email": "student@example.com"}
     assert len(requests) == 1
     assert str(requests[0].url) == "https://acadly-test.supabase.co/auth/v1/user"
     assert requests[0].headers["authorization"] == "Bearer signed-access-token"
@@ -71,7 +71,7 @@ def test_auth_identity_is_a_uuid(monkeypatch) -> None:
     mock_auth_response(monkeypatch, 200, {"id": user_id})
     response = client.get("/api/auth/me", headers={"Authorization": "Bearer valid-token"})
     assert response.status_code == 200
-    assert UUID(response.json()["data"]["id"]) == UUID(user_id)
+    assert UUID(response.json()["id"]) == UUID(user_id)
 
 
 def test_auth_rejects_malformed_identity_from_auth_service(monkeypatch) -> None:
