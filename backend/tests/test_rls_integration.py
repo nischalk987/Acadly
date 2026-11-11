@@ -23,6 +23,7 @@ pytestmark = pytest.mark.skipif(
 )
 
 
+
 def headers(token: str, *, representation: bool = False) -> dict[str, str]:
     result = {
         "apikey": PUBLISHABLE_KEY,
@@ -144,3 +145,37 @@ def test_student_cannot_read_update_delete_or_claim_another_students_record(tabl
                 params={"id": f"eq.{record_id}"},
                 headers=headers(STUDENT_B_TOKEN),
             )
+
+
+@pytest.mark.parametrize(
+    "table",
+    ["profiles", "chapters", "study_tasks", "revisions", "user_preferences"],
+)
+def test_rls_hides_other_students_rows_for_remaining_owned_tables(table: str) -> None:
+    """Verify SELECT isolation for tables not covered by the CRUD matrix above."""
+    with httpx.Client(timeout=15.0) as client:
+        student_a = auth_user_id(client, STUDENT_A_TOKEN)
+        student_b = auth_user_id(client, STUDENT_B_TOKEN)
+        assert student_a != student_b, "Use two different test student accounts."
+
+        if table in {"profiles", "user_preferences"}:
+            # Rows are provisioned for each user by the auth trigger; verify only
+            # the owning user can read their own UUID-keyed row.
+            read_by_a = client.get(
+                f"{SUPABASE_URL}/rest/v1/{table}",
+                params={"id" if table == "profiles" else "user_id": f"eq.{student_b}", "select": "*"},
+                headers=headers(STUDENT_A_TOKEN),
+            )
+            assert read_by_a.status_code == 200
+            assert read_by_a.json() == []
+            return
+
+        # Use a random, valid-looking foreign UUID. RLS should hide the row
+        # regardless of whether the referenced fixture exists.
+        read_by_a = client.get(
+            f"{SUPABASE_URL}/rest/v1/{table}",
+            params={"user_id": f"eq.{student_b}", "select": "*"},
+            headers=headers(STUDENT_A_TOKEN),
+        )
+        assert read_by_a.status_code == 200
+        assert all(row.get("user_id") != student_b for row in read_by_a.json())
