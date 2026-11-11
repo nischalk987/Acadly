@@ -9,8 +9,8 @@ from starlette.requests import Request
 from starlette.responses import Response
 
 from api.errors import install_exception_handlers
-from auth import AuthenticatedStudent, get_current_student
 from api.v1.router import router as v1_router
+from auth import AuthenticatedStudent, get_current_student
 from core.config import get_settings
 
 
