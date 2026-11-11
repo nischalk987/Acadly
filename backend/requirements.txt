@@ -6,4 +6,5 @@ python-multipart>=0.0.9,<1.0
 # Development and quality tools
 pytest>=8.0,<9.0
 httpx>=0.27,<1.0
+email-validator>=2.0,<3.0
 ruff>=0.8,<1.0
