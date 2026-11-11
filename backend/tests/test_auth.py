@@ -22,8 +22,9 @@ def mock_auth_response(monkeypatch, status_code: int, payload: dict) -> list[htt
         return real_client(transport=httpx.MockTransport(handler), **kwargs)
 
     monkeypatch.setattr(auth.httpx, "AsyncClient", client_with_mock_transport)
-    monkeypatch.setattr(auth, "SUPABASE_URL", "https://acadly-test.supabase.co")
-    monkeypatch.setattr(auth, "SUPABASE_PUBLISHABLE_KEY", "test-publishable-key")
+    monkeypatch.setenv("SUPABASE_URL", "https://acadly-test.supabase.co")
+    monkeypatch.setenv("SUPABASE_PUBLISHABLE_KEY", "test-publishable-key")
+    auth.get_settings.cache_clear()
     return requests
 
 
@@ -58,8 +59,9 @@ def test_auth_me_rejects_token_supabase_does_not_accept(monkeypatch) -> None:
 
 
 def test_auth_me_returns_503_when_server_auth_is_not_configured(monkeypatch) -> None:
-    monkeypatch.setattr(auth, "SUPABASE_URL", "")
-    monkeypatch.setattr(auth, "SUPABASE_PUBLISHABLE_KEY", "")
+    monkeypatch.setenv("SUPABASE_URL", "")
+    monkeypatch.setenv("SUPABASE_PUBLISHABLE_KEY", "")
+    auth.get_settings.cache_clear()
     response = client.get("/api/auth/me", headers={"Authorization": "Bearer any-token"})
     assert response.status_code == 503
 
