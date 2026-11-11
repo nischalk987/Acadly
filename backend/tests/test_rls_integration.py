@@ -163,7 +163,10 @@ def test_rls_hides_other_students_rows_for_remaining_owned_tables(table: str) ->
             # the owning user can read their own UUID-keyed row.
             read_by_a = client.get(
                 f"{SUPABASE_URL}/rest/v1/{table}",
-                params={"id" if table == "profiles" else "user_id": f"eq.{student_b}", "select": "*"},
+                params={
+                    "id" if table == "profiles" else "user_id": f"eq.{student_b}",
+                    "select": "*",
+                },
                 headers=headers(STUDENT_A_TOKEN),
             )
             assert read_by_a.status_code == 200
