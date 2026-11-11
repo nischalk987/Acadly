@@ -14,7 +14,7 @@ async def health() -> ApiResponse[HealthStatus]:
     return ApiResponse(data=HealthStatus(status="ok"))
 
 
-@router.get("/ready")
+@router.get("/ready", response_model=None)
 async def ready() -> JSONResponse | dict[str, str]:
     settings = get_settings()
     if not settings.supabase_url or not settings.supabase_publishable_key:
