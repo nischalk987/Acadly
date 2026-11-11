@@ -26,7 +26,7 @@ export function getRangeForPreset(preset, todayKey) {
   return { start: shiftDateKey(todayKey, -6), end: todayKey };
 }
 
-export function buildStudyAnalytics({ sessions, tasks, subjects, chapters, timeZone, start, end, todayKey }) {
+export function buildStudyAnalytics({ sessions, tasks, subjects, chapters, timeZone, start, end, todayKey, streakSessions = sessions }) {
   const days = [];
   for (let key = start; key <= end; key = shiftDateKey(key, 1)) {
     days.push({ date: key, seconds: 0, sessions: 0, tasks: 0 });
@@ -79,18 +79,14 @@ export function buildStudyAnalytics({ sessions, tasks, subjects, chapters, timeZ
   }
 
   const studyDays = days.filter((day) => day.seconds > 0).map((day) => day.date);
-  const studyDateSet = new Set(studyDays);
+  const streakDateSet = new Set(streakSessions
+    .filter((session) => session.session_type === "focus" && session.completed === true && Number(session.duration_seconds) > 0 && session.started_at)
+    .map((session) => dateKeyInTimeZone(session.started_at, timeZone)));
   let currentStreak = 0;
-  let streakDate = studyDateSet.has(todayKey) ? todayKey : shiftDateKey(todayKey, -1);
-  const availableStudyDates = new Set(studyDays);
-  if (streakDate < start) {
-    // The selected range does not contain yesterday/today; streak history is supplied separately.
-    streakDate = null;
-  }
-  while (streakDate && availableStudyDates.has(streakDate)) {
+  let streakDate = streakDateSet.has(todayKey) ? todayKey : shiftDateKey(todayKey, -1);
+  while (streakDateSet.has(streakDate)) {
     currentStreak += 1;
     streakDate = shiftDateKey(streakDate, -1);
-    if (streakDate < start) break;
   }
 
   const bestStreak = (() => {
