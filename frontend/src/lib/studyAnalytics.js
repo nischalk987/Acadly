@@ -1,5 +1,3 @@
-const DAY_MS = 24 * 60 * 60 * 1000;
-
 export function dateKeyInTimeZone(value, timeZone) {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone,
@@ -84,9 +82,15 @@ export function buildStudyAnalytics({ sessions, tasks, subjects, chapters, timeZ
   const studyDateSet = new Set(studyDays);
   let currentStreak = 0;
   let streakDate = studyDateSet.has(todayKey) ? todayKey : shiftDateKey(todayKey, -1);
-  while (studyDateSet.has(streakDate)) {
+  const availableStudyDates = new Set(studyDays);
+  if (streakDate < start) {
+    // The selected range does not contain yesterday/today; streak history is supplied separately.
+    streakDate = null;
+  }
+  while (streakDate && availableStudyDates.has(streakDate)) {
     currentStreak += 1;
     streakDate = shiftDateKey(streakDate, -1);
+    if (streakDate < start) break;
   }
 
   const bestStreak = (() => {
