@@ -17,10 +17,10 @@ const RANGE_OPTIONS = [
   { value: "90d", label: "Last 90 days" },
 ];
 
-function Metric({ label, value, detail, icon: MetricIcon }) {
+function Metric({ label, value, detail, icon: _Icon }) {
   return (
     <article className="analytics-metric">
-      <div><span>{label}</span><span className="analytics-metric-icon"><MetricIcon size={17} aria-hidden="true" /></span></div>
+      <div><span>{label}</span><span className="analytics-metric-icon">{_Icon && <_Icon size={17} aria-hidden="true" />}</span></div>
       <strong>{value}</strong>
       <small>{detail}</small>
     </article>
