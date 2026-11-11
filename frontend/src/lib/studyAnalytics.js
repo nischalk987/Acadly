@@ -84,6 +84,7 @@ export function buildStudyAnalytics({ sessions, tasks, subjects, chapters, timeZ
     .map((session) => dateKeyInTimeZone(session.started_at, timeZone)));
   let currentStreak = 0;
   let streakDate = streakDateSet.has(todayKey) ? todayKey : shiftDateKey(todayKey, -1);
+  const latestStreakDate = streakDate;
   while (streakDateSet.has(streakDate)) {
     currentStreak += 1;
     streakDate = shiftDateKey(streakDate, -1);
